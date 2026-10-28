@@ -1,6 +1,6 @@
-# fpso-compliance-generator
+# sentinel-log
 
-FPSO Compliance Report Generator using Claude API
+Sentinel Log: electronic logbook and SOLAS/IMO compliance report generator using Claude API
 
 A FastAPI backend that turns FPSO (Floating Production Storage Offloading) watch
 logs into structured SOLAS/IMO compliance reports using Claude, with a simple

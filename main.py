@@ -1,5 +1,5 @@
 """
-FPSO Compliance Report Generator.
+Sentinel Log.
 
 FastAPI backend that turns FPSO watch logs into structured SOLAS/IMO
 compliance reports using the Anthropic Claude API. It serves a small
@@ -26,7 +26,7 @@ from datetime import datetime
 from anthropic import Anthropic
 import logging
 
-logger = logging.getLogger("fpso_compliance")
+logger = logging.getLogger("sentinel_log")
 
 # Load variables from a local .env file into the process environment.
 # Must run before anything reads ANTHROPIC_API_KEY.
@@ -35,7 +35,7 @@ load_dotenv()
 # Create the FastAPI application. Title, description and version appear
 # in the auto-generated API docs at /docs.
 app = FastAPI(
-    title="FPSO Compliance Report Generator",
+    title="Sentinel Log",
     description="AI-powered compliance reports for FPSO operations",
     version="1.0.0"
 )
@@ -258,7 +258,7 @@ async def health_check():
     api_key = os.getenv("ANTHROPIC_API_KEY")
     return {
         "status": "ok",
-        "service": "FPSO Compliance Report Generator",
+        "service": "Sentinel Log",
         "claude_api": "configured" if api_key else "missing",
         "timestamp": datetime.now().isoformat()
     }
