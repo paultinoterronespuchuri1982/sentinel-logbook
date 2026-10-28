@@ -13,15 +13,18 @@ Configuration is read from environment variables (see .env.example);
 the required variable is ANTHROPIC_API_KEY.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from starlette.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+import io
 import json
 import os
 import re
+import threading
 from datetime import datetime
 from anthropic import Anthropic
 import logging
@@ -392,6 +395,80 @@ async def get_sample_logs():
         "remarks": "All operations normal. Next scheduled maintenance: 2024-09-25. No safety concerns."
     }
     return sample
+
+# ---------- Local speech-to-text (optional) ----------
+# Uses faster-whisper, which runs on this machine. It is optional: install
+# with "pip install faster-whisper". Without it, the page falls back to the
+# browser's built-in dictation.
+WHISPER_MODEL_NAME = os.getenv("WHISPER_MODEL", "small")
+MAX_AUDIO_BYTES = 25 * 1024 * 1024
+SUPPORTED_LANGUAGES = ("pt", "en", "es")
+_whisper_model = None
+_whisper_lock = threading.Lock()
+
+
+def _whisper_installed() -> bool:
+    try:
+        import faster_whisper  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+def _get_whisper_model():
+    """Load the model once and keep it in memory."""
+    global _whisper_model
+    with _whisper_lock:
+        if _whisper_model is None:
+            from faster_whisper import WhisperModel
+            _whisper_model = WhisperModel(WHISPER_MODEL_NAME, device="cpu", compute_type="int8")
+    return _whisper_model
+
+
+def _transcribe_bytes(audio: bytes, language: str) -> str:
+    """Transcribe audio bytes. Runs in a worker thread (it is CPU-heavy)."""
+    model = _get_whisper_model()
+    segments, _info = model.transcribe(
+        io.BytesIO(audio), language=language, vad_filter=True, beam_size=5
+    )
+    return " ".join(segment.text.strip() for segment in segments).strip()
+
+
+@app.get("/api/transcribe/status")
+async def transcribe_status():
+    """Tell the page whether local speech-to-text is available."""
+    return {"available": _whisper_installed(), "model": WHISPER_MODEL_NAME}
+
+
+@app.post("/api/transcribe")
+async def transcribe(request: Request, language: str = "pt"):
+    """
+    Transcribe recorded audio sent as the raw request body.
+
+    Query parameter "language": "pt", "en" or "es".
+    Returns { "text": "..." }.
+    """
+    if language not in SUPPORTED_LANGUAGES:
+        raise HTTPException(status_code=400, detail="Language must be 'pt', 'en' or 'es'")
+    if not _whisper_installed():
+        raise HTTPException(
+            status_code=503,
+            detail="Local speech model not installed. Run: pip install faster-whisper",
+        )
+
+    audio = await request.body()
+    if not audio:
+        raise HTTPException(status_code=400, detail="No audio received")
+    if len(audio) > MAX_AUDIO_BYTES:
+        raise HTTPException(status_code=413, detail="Audio is too large")
+
+    try:
+        text = await run_in_threadpool(_transcribe_bytes, audio, language)
+    except Exception:
+        logger.exception("Transcription failed")
+        raise HTTPException(status_code=500, detail="Transcription failed")
+    return {"text": text}
+
 
 # Serve static assets (app.js, style.css) at /static.
 try:

@@ -16,7 +16,79 @@ const Dictation = (function () {
 
   const MIC_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
-  function supported() { return !!SR; }
+  function supported() { return !!SR || !!window.MediaRecorder; }
+
+  // Local speech-to-text on the server (faster-whisper). null = not checked yet.
+  let serverEngine = null;
+  const serverReady = fetch("/api/transcribe/status")
+    .then((r) => r.json())
+    .then((d) => { serverEngine = !!d.available; })
+    .catch(() => { serverEngine = false; });
+
+  function whisperLang() {
+    const select = document.getElementById("language");
+    return select && select.value === "pt" ? "pt" : "en";
+  }
+
+  // Recording state for each field when using the server.
+  const recorders = new WeakMap();
+
+  /**
+   * Record while the button is pressed, then send the audio to the server
+   * and add the transcribed text to the field when recording stops.
+   */
+  function whisperToggle(input, button, notify) {
+    let st = recorders.get(input);
+    if (!st) { st = { recorder: null, chunks: [] }; recorders.set(input, st); }
+
+    if (st.recorder && st.recorder.state === "recording") {
+      st.recorder.stop();
+      return;
+    }
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      st.chunks = [];
+      const recorder = new MediaRecorder(stream);
+      st.recorder = recorder;
+
+      recorder.ondataavailable = (e) => { if (e.data && e.data.size) st.chunks.push(e.data); };
+
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        button.classList.remove("is-listening");
+        button.setAttribute("aria-pressed", "false");
+
+        const blob = new Blob(st.chunks, { type: recorder.mimeType || "audio/webm" });
+        if (!blob.size) {
+          if (notify) notify(tr("No audio was recorded."), "err");
+          return;
+        }
+
+        if (notify) notify(tr("Transcribing…"), "");
+        try {
+          const res = await fetch("/api/transcribe?language=" + whisperLang(), {
+            method: "POST",
+            headers: { "Content-Type": blob.type },
+            body: blob,
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || tr("Transcription failed"));
+          input.value = join(input.value, data.text || "");
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          if (notify) notify(tr("Text added. Check it before saving."), "ok");
+        } catch (err) {
+          if (notify) notify(tr("Transcription failed: ") + err.message, "err");
+        }
+      };
+
+      recorder.start();
+      button.classList.add("is-listening");
+      button.setAttribute("aria-pressed", "true");
+      if (notify) notify(tr("Recording… press the microphone again to stop."), "");
+    }).catch(() => {
+      if (notify) notify(tr("Microphone permission denied. Allow Chrome to use the microphone in System Settings."), "err");
+    });
+  }
 
   function langCode() {
     const select = document.getElementById("language");
@@ -144,7 +216,12 @@ const Dictation = (function () {
    * to show the listening state.
    */
   function toggleFor(input, button, notify) {
-    controllerFor(input, button, notify).toggle();
+    const run = () => {
+      if (serverEngine && window.MediaRecorder) whisperToggle(input, button, notify);
+      else controllerFor(input, button, notify).toggle();
+    };
+    if (serverEngine !== null) run();
+    else serverReady.then(run);
   }
 
   /** Add a microphone button to every text field in the watch form. */
