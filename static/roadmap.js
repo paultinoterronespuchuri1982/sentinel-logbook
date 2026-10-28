@@ -36,9 +36,11 @@
     { status: "available", text: "English and Portuguese; day, dusk, night and red themes" },
     { status: "available", text: "Voice assistant with one microphone: it reads each empty field aloud and writes your answer",
       note: "Works with a Bluetooth headset connected to the device. Uses the browser's speech tools, so it needs Chrome, Edge or Safari." },
+    { status: "available", text: "Statistics: records per week, reminders on time and watch hours, as charts from this device's records" },
     { status: "draft", text: "Field lists for 8 logbooks. Only the Oil Record Book has been checked against its source." },
     { status: "planned", text: "Free speech: say several fields in one sentence and the system fills them" },
     { status: "planned", text: "Assistant speech with a language model (paid service or local model)" },
+    { status: "planned", text: "Fuel consumption trend and emissions estimate (needs a numeric fuel field)" },
     { status: "planned", text: "Weekly and periodic inspection reminders, asked aloud by the assistant" },
     { status: "planned", text: "Shared database and backups, usable from several devices" },
     { status: "planned", text: "Permanent history of changes, verifiable timestamps and electronic signature (ISO 21745)" },
@@ -90,6 +92,8 @@
   function open() {
     render();
     section.hidden = false;
+    const stats = document.getElementById("statsSection");
+    if (stats) stats.hidden = true;
     watchSection.hidden = true;
     logbookSection.hidden = true;
     progressWrap.hidden = true;

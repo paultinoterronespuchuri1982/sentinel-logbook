@@ -36,6 +36,25 @@ const PT = {
   "Say the time, for example 8 30.": "Diga a hora, por exemplo 8 30.",
   "Say the date, for example 28/10/2026.": "Diga a data, por exemplo 28/10/2026.",
 
+  // ----- Statistics -----
+  "Statistics": "Estatísticas",
+  "Statistics from the records saved on this device.": "Estatísticas dos registros salvos neste dispositivo.",
+  "The chart library did not load. Check your internet connection.": "A biblioteca de gráficos não carregou. Verifique sua conexão com a internet.",
+  "No data yet. Save a record to see statistics.": "Ainda sem dados. Salve um registro para ver as estatísticas.",
+  "Total records": "Total de registros",
+  "Records this week": "Registros nesta semana",
+  "Reminders on time": "Lembretes em dia",
+  "Watch hours, last 14 days": "Horas de guarda, últimos 14 dias",
+  "Records per week": "Registros por semana",
+  "Reminders by logbook": "Lembretes por livro",
+  "Watch hours per day": "Horas de guarda por dia",
+  "On time": "Em dia",
+  "Overdue": "Vencido",
+  "Not recorded": "Não registrado",
+  "Watch hours": "Horas de guarda",
+  "Statistics: records per week, reminders on time and watch hours, as charts from this device's records": "Estatísticas: registros por semana, lembretes em dia e horas de guarda, em gráficos a partir dos registros deste dispositivo",
+  "Fuel consumption trend and emissions estimate (needs a numeric fuel field)": "Tendência de consumo de combustível e estimativa de emissões (precisa de um campo numérico de combustível)",
+
   // ----- Roadmap -----
   "Roadmap": "Roteiro",
   "Roadmap: what is available and what is planned": "Roteiro: o que já existe e o que está planejado",
