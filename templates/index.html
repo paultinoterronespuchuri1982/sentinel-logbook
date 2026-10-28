@@ -97,6 +97,7 @@
           </select>
         </label>
 
+        <button id="roadmapBtn" type="button" class="btn btn-ghost" aria-pressed="false">Roadmap</button>
         <button id="loadSample" type="button" class="btn btn-ghost" data-i18n="Load sample">Load sample</button>
       </div>
     </header>
@@ -111,6 +112,9 @@
 
       <!-- Center: entry forms. -->
       <div class="center-col">
+
+        <!-- Roadmap: what is available, draft, planned or outside this software. Filled by static/roadmap.js. -->
+        <section id="roadmapSection" class="card" aria-label="Roadmap" hidden></section>
 
         <!-- Deck logbook: the watch record used to generate the report. -->
         <section id="watchSection" class="card" aria-labelledby="form-title">
@@ -275,5 +279,6 @@
 <script src="/static/dictation.js"></script>
 <script src="/static/logbook.js"></script>
 <script src="/static/draft.js"></script>
+<script src="/static/roadmap.js"></script>
 </body>
 </html>
