@@ -99,11 +99,11 @@ function renderReport(report) {
   reportEl.innerHTML = "";
 
   const sections = [
-    ["Executive Summary", report.executive_summary],
-    ["Equipment Status Assessment", report.equipment_status],
-    ["Incident Analysis", report.incident_analysis],
-    ["Maintenance Review", report.maintenance_review],
-    ["Regulatory Compliance Checklist", report.compliance_checklist],
+    ["Executive summary", report.executive_summary],
+    ["Equipment status", report.equipment_status],
+    ["Incident analysis", report.incident_analysis],
+    ["Maintenance review", report.maintenance_review],
+    ["Compliance checklist", report.compliance_checklist],
     ["Recommendations", report.recommendations],
     ["Sign-off", report.sign_off_template],
   ];
@@ -114,23 +114,32 @@ function renderReport(report) {
   for (const [title, content] of sections) {
     if (content === undefined || content === null || content === "") continue;
 
+    // Each section is a card: a heading and its content.
+    const card = document.createElement("article");
+    card.className = "report-card";
+
     const heading = document.createElement("h3");
     heading.textContent = title;
-    reportEl.appendChild(heading);
+    card.appendChild(heading);
 
     if (Array.isArray(content)) {
-      const ul = document.createElement("ul");
+      // Checklist items are shown as rows with an empty check box. The user
+      // ticks them off during review; the model does not mark them as done.
+      const list = document.createElement("ul");
+      list.className = "checklist";
       for (const item of content) {
         const li = document.createElement("li");
         li.textContent = item;
-        ul.appendChild(li);
+        list.appendChild(li);
       }
-      reportEl.appendChild(ul);
+      card.appendChild(list);
     } else {
       const p = document.createElement("p");
       p.textContent = content;
-      reportEl.appendChild(p);
+      card.appendChild(p);
     }
+
+    reportEl.appendChild(card);
   }
 }
 
@@ -142,6 +151,11 @@ function renderReport(report) {
  */
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  // The form uses novalidate for custom styling, so run the browser's
+  // required-field check here and show its messages.
+  if (!form.reportValidity()) return;
+
   reportEl.innerHTML = "";
 
   // Validate the equipment JSON before sending anything. On error, show the

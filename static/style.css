@@ -1,152 +1,405 @@
 /*
  * Styles for the compliance report page.
- * Dark theme. Colors are defined as CSS variables in :root so they can
- * be changed in one place.
+ * Light and dark themes follow the operating system setting. Colors are
+ * defined as CSS variables on :root so they can be changed in one place.
  */
 
-/* Color palette (dark theme). */
+/* ---------- Design tokens ---------- */
 :root {
-  --bg: #0f172a;            /* page background */
-  --panel: #1e293b;         /* panel background */
-  --border: #334155;        /* borders and dividers */
-  --text: #e2e8f0;          /* main text */
-  --muted: #94a3b8;         /* labels and secondary text */
-  --accent: #38bdf8;        /* headings, focus, hover */
-  --accent-strong: #0ea5e9; /* primary button */
-  --ok: #22c55e;            /* success message */
-  --err: #f87171;           /* error message */
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #0b6bcb;
+  --accent-hover: #0959a8;
+  --accent-soft: #e6f0fb;
+  --ok: #047857;
+  --ok-soft: #e7f7ef;
+  --err: #b91c1c;
+  --err-soft: #fdecec;
+
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.04);
+  --focus: 0 0 0 3px rgba(11, 107, 203, 0.35);
 }
 
-/* Include padding and border in element sizes, so widths stay predictable. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1120;
+    --surface: #111a2e;
+    --surface-2: #0e1729;
+    --border: #22304a;
+    --text: #e6edf7;
+    --muted: #94a3b8;
+    --accent: #5fb0ff;
+    --accent-hover: #86c3ff;
+    --accent-soft: #14253f;
+    --ok: #34d399;
+    --ok-soft: #0f2e25;
+    --err: #f87171;
+    --err-soft: #3a1717;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.25);
+    --focus: 0 0 0 3px rgba(95, 176, 255, 0.4);
+  }
+}
+
+/* ---------- Base ---------- */
 * { box-sizing: border-box; }
 
-/* Base page style. */
+html { -webkit-text-size-adjust: 100%; }
+
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
 }
 
-/* Centered content column with a maximum width. */
-.app { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+h1, h2, h3 { margin: 0; letter-spacing: -0.01em; }
 
-/* Page header with title and subtitle. */
-header { margin-bottom: 24px; }
-header h1 { margin: 0 0 4px; font-size: 1.6rem; }
-.subtitle { color: var(--muted); margin: 0; }
-
-/* Two columns: form (wider) and report. */
-main {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: 20px;
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 
-/* On narrow screens, stack the panels in one column. */
-@media (max-width: 860px) {
-  main { grid-template-columns: 1fr; }
-}
+.hint { color: var(--muted); font-size: 0.8rem; font-weight: 400; }
 
-/* Card-style container for each panel. */
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 18px 20px;
-}
-
-/* Panel title row with the language selector and sample button. */
-.panel-header {
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 12px;
+  padding: 14px clamp(16px, 4vw, 40px);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--border);
 }
 
-/* Controls on the right of the panel header. */
-.panel-actions { display: flex; align-items: center; gap: 8px; }
-.panel-actions label { color: var(--muted); font-size: 0.85rem; }
+.brand { display: flex; align-items: center; gap: 12px; }
 
-/* Two-column grid for short form fields. */
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.brand h1 { font-size: 1.05rem; font-weight: 650; }
+.subtitle { margin: 2px 0 0; color: var(--muted); font-size: 0.82rem; }
+
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+/* ---------- Layout ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 40px) 64px;
+  align-items: start;
+}
+
+@media (max-width: 920px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px clamp(16px, 2.2vw, 24px);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card-head h2 { font-size: 1.05rem; font-weight: 650; }
+
+/* ---------- Form groups ---------- */
+.group {
+  border: 0;
+  margin: 0 0 20px;
+  padding: 0;
+  min-width: 0;
+}
+
+.group legend {
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  padding: 0;
+  margin-bottom: 10px;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
 }
 
-/* Single column on small screens. */
+.two-time {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.two-time .field { margin: 0; }
+
 @media (max-width: 560px) {
   .grid { grid-template-columns: 1fr; }
 }
 
-/* One form field: label above its input. */
-.field { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
-label { font-size: 0.85rem; color: var(--muted); }
-
-/* Shared look for inputs, text areas and the language selector. */
-input, textarea, select {
-  background: #0b1220;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text);
-  padding: 8px 10px;
-  font-size: 0.9rem;
-  font-family: inherit;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+  min-width: 0;
 }
 
-/* Text areas can be resized vertically only. */
-textarea { resize: vertical; }
+.grid > .field { margin-bottom: 0; }
 
-/* Focus ring: change the border color instead of the browser outline. */
-input:focus, textarea:focus, select:focus {
+label {
+  font-size: 0.85rem;
+  font-weight: 550;
+  color: var(--text);
+}
+
+input, textarea, select {
+  width: 100%;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--muted) 75%, transparent); }
+
+textarea { resize: vertical; min-height: 44px; }
+textarea.mono { font-family: var(--mono); font-size: 0.85rem; }
+
+input:hover, textarea:hover, select:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+
+input:focus-visible, textarea:focus-visible, select:focus-visible {
   outline: none;
   border-color: var(--accent);
+  box-shadow: var(--focus);
+  background: var(--surface);
 }
 
-/* Primary button (used for the submit button). */
-button {
-  background: var(--accent-strong);
-  color: #06202c;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 16px;
-  font-weight: 600;
+/* Native date and time pickers follow the theme. */
+input[type="date"], input[type="time"] { color-scheme: light dark; }
+
+/* Language select inside the top bar. */
+.select-wrap select {
+  width: auto;
+  padding: 7px 10px;
+  font-size: 0.85rem;
   cursor: pointer;
 }
 
-button:hover { background: var(--accent); }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
-
-/* "Load sample" is a secondary button: outline style, no fill. */
-#loadSample {
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--border);
-  padding: 6px 10px;
-  font-weight: 500;
+/* ---------- Buttons ---------- */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
 }
 
-/* Status line. Colored by the .ok or .err class set in app.js. */
-.status { min-height: 20px; margin-bottom: 8px; font-size: 0.9rem; }
-.status.ok { color: var(--ok); }
-.status.err { color: var(--err); }
+.btn:active { transform: translateY(1px); }
+.btn:focus-visible { outline: none; box-shadow: var(--focus); }
 
-/* Report sections. Styles match the elements app.js creates. */
-.report h3 { margin: 16px 0 6px; font-size: 1rem; color: var(--accent); }
-.report h3:first-child { margin-top: 0; }
-.report p { margin: 0 0 8px; line-height: 1.5; color: var(--text); }
-.report ul { margin: 0 0 8px; padding-left: 20px; }
-.report li { margin-bottom: 4px; }
+.btn-primary {
+  background: var(--accent);
+  color: #ffffff;
+  min-width: 170px;
+}
 
-/* Preformatted text block, kept for raw output. */
-.report pre {
-  white-space: pre-wrap;
-  background: #0b1220;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 10px;
+.btn-primary:hover { background: var(--accent-hover); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--border);
+  padding: 7px 12px;
   font-size: 0.85rem;
+}
+
+.btn-ghost:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* Spinner shown only while the request is running. */
+.spinner {
+  display: none;
+  width: 14px; height: 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+.btn[disabled] .spinner { display: inline-block; }
+.btn[disabled] .btn-label { opacity: 0.85; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.form-footer .hint { max-width: 36ch; }
+
+/* ---------- Status ---------- */
+.status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  border: 1px solid transparent;
+}
+
+.status:not(:empty) { display: flex; }
+
+.status.ok  { color: var(--ok);  background: var(--ok-soft);  border-color: color-mix(in srgb, var(--ok) 25%, transparent); }
+.status.err { color: var(--err); background: var(--err-soft); border-color: color-mix(in srgb, var(--err) 25%, transparent); }
+
+/* ---------- Report ---------- */
+.empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.empty p { margin: 4px 0; }
+
+.report { display: grid; gap: 12px; }
+
+.report-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  animation: rise 0.25s ease both;
+}
+
+.report-card:nth-child(2) { animation-delay: 0.03s; }
+.report-card:nth-child(3) { animation-delay: 0.06s; }
+.report-card:nth-child(4) { animation-delay: 0.09s; }
+.report-card:nth-child(5) { animation-delay: 0.12s; }
+.report-card:nth-child(6) { animation-delay: 0.15s; }
+.report-card:nth-child(7) { animation-delay: 0.18s; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.report-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.report-card h3::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.report-card p { margin: 0; line-height: 1.6; white-space: pre-wrap; }
+
+/* Checklist rendered as a list with check marks. */
+.checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+
+.checklist li {
+  position: relative;
+  padding: 8px 10px 8px 34px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.checklist li::before {
+  content: "";
+  position: absolute;
+  left: 11px; top: 50%;
+  width: 14px; height: 14px;
+  margin-top: -7px;
+  border: 1.5px solid var(--muted);
+  border-radius: 4px;
+}
+
+.checklist li.done::before {
+  background: var(--ok);
+  border-color: var(--ok);
+  box-shadow: inset 0 0 0 3px var(--surface);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

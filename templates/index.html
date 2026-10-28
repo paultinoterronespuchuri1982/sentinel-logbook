@@ -1,9 +1,11 @@
 <!--
   Main page of the FPSO Compliance Report Generator.
 
-  Two panels:
-    1. Operational Log: the form that collects one watch record.
-    2. Report: status line and the generated report sections.
+  Layout:
+    - Top bar with product name, language selector and sample loader.
+    - Left: the watch record, grouped into sections (details, operations,
+      equipment and maintenance, notes).
+    - Right: report status and generated report cards.
 
   Element IDs are used by static/app.js. Do not rename them without
   updating app.js. Styles live in static/style.css.
@@ -11,116 +13,151 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Character encoding and responsive layout (mobile width). -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FPSO Compliance Report Generator</title>
-<!-- Stylesheet served by FastAPI from the /static mount. -->
+<meta name="color-scheme" content="light dark">
+<title>FPSO Compliance Reports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<!-- Page wrapper, limits the content width. -->
-<div class="app">
-  <header>
-    <h1>FPSO Compliance Report Generator</h1>
-    <p class="subtitle">AI-powered SOLAS / IMO compliance reports from watch logs</p>
-  </header>
 
-  <main>
-    <!-- Left panel: the watch log form. -->
-    <section class="panel">
-      <div class="panel-header">
-        <h2>Operational Log</h2>
-        <div class="panel-actions">
-          <!-- Report language, sent as "language" in the request. -->
-          <label for="language">Language</label>
-          <select id="language">
-            <option value="en">English</option>
-            <option value="pt">Português</option>
-          </select>
-          <!-- Fills the form with sample data from /api/sample-logs. -->
-          <button id="loadSample" type="button">Load sample</button>
-        </div>
-      </div>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 15l9-9 9 9M6 13v7h12v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <div>
+      <h1>FPSO Compliance Reports</h1>
+      <p class="subtitle">SOLAS / IMO reports generated from watch logs</p>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <label class="select-wrap">
+      <span class="sr-only">Report language</span>
+      <!-- Report language, sent as "language" in the request. -->
+      <select id="language">
+        <option value="en">English</option>
+        <option value="pt">Português</option>
+      </select>
+    </label>
+    <!-- Fills the form with sample data from /api/sample-logs. -->
+    <button id="loadSample" type="button" class="btn btn-ghost">Load sample</button>
+  </div>
+</header>
 
-      <!-- Submit is handled in app.js. The browser's required-field check runs first. -->
-      <form id="logForm">
-        <!-- Two-column grid for short fields. -->
+<main class="layout">
+
+  <!-- Left: the watch record form. -->
+  <section class="card" aria-labelledby="form-title">
+    <div class="card-head">
+      <h2 id="form-title">Watch record</h2>
+      <span class="hint">Required fields are marked *</span>
+    </div>
+
+    <!-- Submit is handled in app.js. The browser's required-field check runs first. -->
+    <form id="logForm" novalidate>
+
+      <fieldset class="group">
+        <legend>Watch details</legend>
         <div class="grid">
           <div class="field">
-            <label for="vessel_name">Vessel Name</label>
+            <label for="vessel_name">Vessel name *</label>
             <input id="vessel_name" name="vessel_name" required>
           </div>
           <div class="field">
-            <label for="date">Date</label>
-            <input id="date" name="date" type="date" required>
-          </div>
-          <div class="field">
-            <label for="watch_start">Watch Start</label>
-            <input id="watch_start" name="watch_start" type="time" required>
-          </div>
-          <div class="field">
-            <label for="watch_end">Watch End</label>
-            <input id="watch_end" name="watch_end" type="time" required>
-          </div>
-          <div class="field">
-            <label for="chief_officer">Chief Officer</label>
+            <label for="chief_officer">Chief officer *</label>
             <input id="chief_officer" name="chief_officer" required>
           </div>
           <div class="field">
-            <label for="fuel_oil_quantity">Fuel Oil Quantity</label>
-            <input id="fuel_oil_quantity" name="fuel_oil_quantity" placeholder="e.g. 2450 tons">
+            <label for="date">Date *</label>
+            <input id="date" name="date" type="date" required>
+          </div>
+          <div class="field two-time">
+            <div class="field">
+              <label for="watch_start">Start *</label>
+              <input id="watch_start" name="watch_start" type="time" required>
+            </div>
+            <div class="field">
+              <label for="watch_end">End *</label>
+              <input id="watch_end" name="watch_end" type="time" required>
+            </div>
           </div>
         </div>
+      </fieldset>
 
-        <!-- Full-width fields below the grid. Multi-line text areas. -->
+      <fieldset class="group">
+        <legend>Operations</legend>
         <div class="field">
-          <label for="operational_summary">Operational Summary</label>
+          <label for="operational_summary">Operational summary *</label>
           <textarea id="operational_summary" name="operational_summary" rows="3" required></textarea>
         </div>
-
-        <!-- Must be a JSON object. app.js validates it before sending. -->
-        <div class="field">
-          <label for="equipment_status">Equipment Status (JSON)</label>
-          <textarea id="equipment_status" name="equipment_status" rows="4" placeholder='{"separator": "operational", "power_generation": "operational"}'></textarea>
+        <div class="grid">
+          <div class="field">
+            <label for="fuel_oil_quantity">Fuel oil quantity</label>
+            <input id="fuel_oil_quantity" name="fuel_oil_quantity" placeholder="e.g. 2450 tons">
+          </div>
+          <div class="field">
+            <label for="weather_conditions">Weather conditions</label>
+            <input id="weather_conditions" name="weather_conditions" placeholder="e.g. Sea state 3, 15 kn wind">
+          </div>
         </div>
+      </fieldset>
 
-        <!-- One task per line. app.js splits it into a list. -->
+      <fieldset class="group">
+        <legend>Equipment and maintenance</legend>
         <div class="field">
-          <label for="maintenance_performed">Maintenance Performed (one item per line)</label>
+          <label for="equipment_status">Equipment status (JSON)</label>
+          <textarea id="equipment_status" name="equipment_status" rows="4" class="mono" placeholder='{"separator": "operational", "power_generation": "operational"}'></textarea>
+        </div>
+        <div class="field">
+          <label for="maintenance_performed">Maintenance performed <span class="hint">one task per line</span></label>
           <textarea id="maintenance_performed" name="maintenance_performed" rows="3"></textarea>
         </div>
+      </fieldset>
 
+      <fieldset class="group">
+        <legend>Notes</legend>
         <div class="field">
           <label for="incidents">Incidents</label>
-          <textarea id="incidents" name="incidents" rows="2"></textarea>
+          <textarea id="incidents" name="incidents" rows="2" placeholder="Leave empty if none"></textarea>
         </div>
-
-        <div class="field">
-          <label for="weather_conditions">Weather Conditions</label>
-          <input id="weather_conditions" name="weather_conditions">
-        </div>
-
         <div class="field">
           <label for="remarks">Remarks</label>
           <textarea id="remarks" name="remarks" rows="2"></textarea>
         </div>
+      </fieldset>
 
+      <div class="form-footer">
+        <p class="hint">Reports are drafts. Review them before any official use.</p>
         <!-- Starts the request. The button is disabled while it runs. -->
-        <button type="submit" id="generateBtn">Generate Compliance Report</button>
-      </form>
-    </section>
+        <button type="submit" id="generateBtn" class="btn btn-primary">
+          <span class="btn-label">Generate report</span>
+          <span class="spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+    </form>
+  </section>
 
-    <!-- Right panel: results. app.js fills #status and #report. -->
-    <section class="panel">
-      <h2>Report</h2>
-      <!-- Status line: progress, success, or error messages. -->
-      <div id="status" class="status"></div>
-      <!-- Container for the generated report sections. -->
-      <div id="report" class="report"></div>
-    </section>
-  </main>
-</div>
+  <!-- Right: results. app.js fills #status and #report. -->
+  <section class="card" aria-labelledby="report-title">
+    <div class="card-head">
+      <h2 id="report-title">Report</h2>
+    </div>
+    <!-- Status line: progress, success, or error messages. -->
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <!-- Container for the generated report sections. -->
+    <div id="report" class="report">
+      <div class="empty">
+        <p>No report yet.</p>
+        <p class="hint">Fill in the watch record and select Generate report.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
 
 <!-- Loaded last so the elements above exist when the script runs. -->
 <script src="/static/app.js"></script>
