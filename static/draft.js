@@ -4,9 +4,10 @@
  * - The form is saved as a draft on this device while you type, so a
  *   refresh or a closed tab does not lose the work.
  * - "Save record" stores a dated copy in the Deck logbook on this device.
- * - Every text field in the watch form gets a microphone button.
+ * Voice input is handled by the single "Voice assistant" button
+ * (static/voice-assistant.js).
  *
- * Depends on tr() (static/i18n.js) and Dictation (static/dictation.js).
+ * Depends on tr() (static/i18n.js).
  */
 
 (function () {
@@ -86,6 +87,4 @@
     document.dispatchEvent(new Event("entrysaved"));
   });
 
-  // Microphone buttons on every text field of the watch form.
-  if (window.Dictation) Dictation.addToWatchForm(showMessage);
 })();

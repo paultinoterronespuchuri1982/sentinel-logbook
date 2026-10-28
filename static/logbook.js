@@ -139,9 +139,6 @@
       label.textContent = tr(field.label) + (field.required ? " *" : "");
       wrap.appendChild(label);
 
-      const row = document.createElement("div");
-      row.className = "input-row";
-
       let input;
       if (field.type === "textarea") {
         input = document.createElement("textarea");
@@ -153,33 +150,12 @@
       }
       input.id = "lb-" + field.id;
       input.name = field.id;
-      row.appendChild(input);
-
-      // Voice button: dictates into this field.
-      if (speechSupported()) {
-        const mic = document.createElement("button");
-        mic.type = "button";
-        mic.className = "mic";
-        mic.title = tr("Dictate");
-        mic.setAttribute("aria-label", tr("Dictate") + " " + tr(field.label));
-        mic.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-        mic.addEventListener("click", () => dictate(input, mic));
-        row.appendChild(mic);
-      }
-
-      wrap.appendChild(row);
+      wrap.appendChild(input);
       fieldsEl.appendChild(wrap);
     });
   }
 
-  // ----- Voice dictation (browser speech recognition) -----
-  function speechSupported() {
-    return Dictation.supported();
-  }
-
-  function dictate(target, button) {
-    Dictation.toggleFor(target, button, showMessage);
-  }
+  // Voice input for these fields: the single "Voice assistant" button (voice-assistant.js).
 
   // ----- Saving an entry -----
   saveBtn.addEventListener("click", () => {
