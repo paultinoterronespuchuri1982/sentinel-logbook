@@ -25,7 +25,6 @@ const VOICE_STRINGS = {
     hintDate: "Diga la fecha, por ejemplo: veintiocho de octubre de dos mil veintiséis.",
     needs: "El asistente de voz necesita Chrome, Edge o Safari.",
     allStart: "Diga todo seguido, cada campo con su nombre y su valor. Toque el botón otra vez para terminar.",
-    allListening: "Escuchando todo. Toque el botón otra vez para terminar.",
     summary: "Llené {count} campos. ¿Está todo bien? Diga sí, o no para revisar campo por campo.",
     noneFilled: "No entendí ningún campo. Revise la guía y vuelva a intentar.",
     allOk: "Listo. Revise y guarde el registro.",
@@ -33,6 +32,9 @@ const VOICE_STRINGS = {
     guideLead: "Diga cada campo con su nombre, seguido de su valor. Ejemplo:",
     previewTitle: "Lo que escucho y cómo lo entiendo",
     previewMissing: "falta",
+    allListening: "Escuchando. Hable todo: al hacer una pausa, se llena solo.",
+    filledSome: "Llené {count} campos. Revise la vista previa: lo que dice falta no se llenó.",
+    filledAll: "Llené todos los campos. Revise y guarde.",
   },
   "pt-BR": {
     start: "Vamos preencher o registro. Diga parar para terminar, ou próximo para pular um campo.",
@@ -51,7 +53,6 @@ const VOICE_STRINGS = {
     hintDate: "Diga a data, por exemplo: vinte e oito de outubro de dois mil e vinte e seis.",
     needs: "O assistente de voz precisa do Chrome, Edge ou Safari.",
     allStart: "Diga tudo seguido, cada campo com seu nome e seu valor. Toque o botão de novo para terminar.",
-    allListening: "Ouvindo tudo. Toque o botão de novo para terminar.",
     summary: "Preenchi {count} campos. Está tudo certo? Diga sim, ou não para revisar campo por campo.",
     noneFilled: "Não entendi nenhum campo. Veja o guia e tente de novo.",
     allOk: "Pronto. Revise e salve o registro.",
@@ -59,6 +60,9 @@ const VOICE_STRINGS = {
     guideLead: "Diga cada campo com o nome, seguido do valor. Exemplo:",
     previewTitle: "O que ouço e como entendo",
     previewMissing: "falta",
+    allListening: "Ouvindo. Fale tudo: ao fazer uma pausa, preenche sozinho.",
+    filledSome: "Preenchi {count} campos. Veja a prévia: o que diz falta não foi preenchido.",
+    filledAll: "Preenchi todos os campos. Revise e salve.",
   },
   "en-US": {
     start: "Let's fill the record. Say stop to finish, or next to skip a field.",
@@ -77,7 +81,6 @@ const VOICE_STRINGS = {
     hintDate: "Say the date, for example twenty eighth of October two thousand twenty six.",
     needs: "The voice assistant needs Chrome, Edge or Safari.",
     allStart: "Say everything in one go, each field with its name and value. Tap the button again to finish.",
-    allListening: "Listening to everything. Tap the button again to finish.",
     summary: "I filled {count} fields. Is everything right? Say yes, or no to review field by field.",
     noneFilled: "I did not understand any field. Check the guide and try again.",
     allOk: "Done. Check the record and save it.",
@@ -85,6 +88,9 @@ const VOICE_STRINGS = {
     guideLead: "Say each field by its name, followed by its value. Example:",
     previewTitle: "What I hear and how I understand it",
     previewMissing: "missing",
+    allListening: "Listening. Speak everything: it fills in when you pause.",
+    filledSome: "I filled {count} fields. Check the preview: what says missing was not filled.",
+    filledAll: "I filled all the fields. Check and save.",
   },
 };
 

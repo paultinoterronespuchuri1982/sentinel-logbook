@@ -401,21 +401,61 @@
     });
   }
 
-  // A long dictation: keeps listening until stop() is called. Resolves with all the text heard.
+  // A long dictation. It ends by itself after a pause in speech, or when stop() is called.
+  // Nothing is spoken: the form fills in silently and the preview shows the result.
+  // Resolves with all the text heard.
   function listenLong(onText) {
     return new Promise((resolve) => {
+      const PAUSE_MS = 2000;       // silence that ends the dictation
+      const START_WAIT_MS = 10000; // wait before the first word
       let text = "";
-      const r = newRecognition(true);
-      r.onresult = (event) => {
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) text += " " + event.results[i][0].transcript;
-        }
-        show(T().heard + text.trim());
-        if (onText) onText(text.trim());
+      let interim = "";
+      let finalized = false;
+      let quietTimer = null;
+
+      const finalize = () => {
+        clearTimeout(quietTimer);
+        quietTimer = null;
+        finalized = true;
+        resolve(text.trim());
       };
-      r.onerror = () => {};
-      r.onend = () => resolve(text.trim());
-      try { r.start(); } catch (err) { resolve(""); }
+
+      // Each word or pause restarts the silence timer.
+      const restartQuiet = (ms) => {
+        clearTimeout(quietTimer);
+        quietTimer = setTimeout(pauseEnds, ms);
+      };
+
+      const pauseEnds = () => {
+        finalized = true;
+        if (recognition) { try { recognition.stop(); } catch (err) { /* already stopped */ } }
+        setTimeout(finalize, 1500); // fallback if the browser does not report the end
+      };
+
+      const begin = () => {
+        const r = newRecognition(true);
+        r.interimResults = true;
+        r.onresult = (event) => {
+          interim = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const piece = event.results[i][0].transcript;
+            if (event.results[i].isFinal) text += " " + piece;
+            else interim += piece;
+          }
+          if (onText) onText((text + " " + interim).trim());
+          restartQuiet(PAUSE_MS);
+        };
+        r.onerror = () => {};
+        r.onend = () => {
+          // The browser may stop by itself: keep listening until the pause or stop().
+          if (running && !finalized) begin();
+          else finalize();
+        };
+        try { r.start(); } catch (err) { finalize(); }
+      };
+
+      restartQuiet(START_WAIT_MS);
+      begin();
     });
   }
 
@@ -602,46 +642,29 @@
     box.hidden = false;
   }
 
-  // Dictate everything at once, then summarize, confirm, and ask only about what is missing.
+  // Dictate everything at once. Nothing is spoken: the form fills in when the speech
+  // pauses, and the preview shows what was understood, field by field.
   async function dictateAll() {
     const fields = collectFields();
     show(T().allListening);
-    await say(T().allStart);
 
-    const text = await listenLong((heardSoFar) => renderPreview(heardSoFar, fields));
+    const text = await listenLong((heard) => renderPreview(heard, fields));
     renderPreview(text, fields);
     if (!text) {
-      await say(T().noneFilled);
-      return finish();
+      show(T().noneFilled, "err");
+      return stopEverything();
     }
-    show(T().heard + text);
 
     const result = fillFromSpeech(text, fields);
     result.filled.forEach((item) => setValue(item.field.input, item.value));
 
-    if (!result.filled.length) {
-      await say(T().noneFilled);
-      return finish();
+    if (!result.filled.length) show(T().noneFilled, "err");
+    else if (result.missing.length || result.unclear.length) {
+      show(T().filledSome.replace("{count}", String(result.filled.length)), "ok");
+    } else {
+      show(T().filledAll, "ok");
     }
-
-    await say(T().summary.replace("{count}", String(result.filled.length)));
-    if (!running) return finish();
-
-    // Fields not said, or said with an unclear value, are asked one by one.
-    const ask = result.missing.concat(result.unclear.map((u) => u.field));
-    if (ask.length) {
-      result.unclear.forEach((u) => setValue(u.field.input, ""));
-      return run(ask);
-    }
-
-    // Everything was understood: confirm once.
-    const reply = await listen();
-    if (!running) return finish();
-    const kind = reply ? classify(reply) : "yes";
-    if (kind === "no") return run(result.filled.map((item) => item.field));
-
-    await say(T().allOk);
-    finish();
+    stopEverything();
   }
 
   // ----- Starting and stopping -----
