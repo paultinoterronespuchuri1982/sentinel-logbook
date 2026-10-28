@@ -686,3 +686,7 @@ input[type="date"], input[type="time"] { color-scheme: light dark; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---------- Watch form footer actions ---------- */
+.footer-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.form-footer > .status { flex-basis: 100%; margin: 0; }

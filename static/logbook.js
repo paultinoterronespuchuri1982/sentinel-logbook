@@ -174,42 +174,11 @@
 
   // ----- Voice dictation (browser speech recognition) -----
   function speechSupported() {
-    return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+    return Dictation.supported();
   }
 
   function dictate(target, button) {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      showMessage(tr("Voice input needs Chrome, Edge or Safari."), "err");
-      return;
-    }
-
-    const recognition = new SR();
-    recognition.lang = languageSelect.value === "pt" ? "pt-BR" : "en-US";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    button.classList.add("is-listening");
-    showMessage(tr("Listening… speak now."), "");
-
-    recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      target.value = target.value ? target.value + " " + text : text;
-      target.dispatchEvent(new Event("input", { bubbles: true }));
-      showMessage(tr("Captured. Check the text before saving."), "ok");
-    };
-
-    recognition.onerror = (event) => {
-      showMessage(tr("Voice error: ") + event.error + tr(". Check microphone permission."), "err");
-    };
-
-    recognition.onend = () => button.classList.remove("is-listening");
-
-    try { recognition.start(); }
-    catch (err) {
-      showMessage(tr("Could not start voice input."), "err");
-      button.classList.remove("is-listening");
-    }
+    Dictation.toggleFor(target, button, showMessage);
   }
 
   // ----- Saving an entry -----
@@ -352,6 +321,9 @@
     if (keepType && LOGBOOKS[current].types.some((t) => t.id === keepType)) typeSelect.value = keepType;
     renderFields();
   });
+
+  // A watch record saved from the Deck form updates the reminders.
+  document.addEventListener("entrysaved", renderReminders);
 
   // Start on the Deck logbook.
   select("deck");

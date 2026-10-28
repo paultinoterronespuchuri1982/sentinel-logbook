@@ -194,10 +194,14 @@
 
             <div class="form-footer">
               <p class="hint" data-i18n="Generated reports are drafts. Review them before any official use.">Generated reports are drafts. Review them before any official use.</p>
+              <p id="watchMessage" class="status" role="status" aria-live="polite"></p>
+              <div class="footer-actions">
+                <button type="button" id="saveWatch" class="btn btn-ghost" data-i18n="Save record">Save record</button>
               <button type="submit" id="generateBtn" class="btn btn-primary">
                 <span class="btn-label" data-i18n="Generate report">Generate report</span>
                 <span class="spinner" aria-hidden="true"></span>
               </button>
+              </div>
             </div>
           </form>
         </section>
@@ -268,6 +272,8 @@
 <script src="/static/theme.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/logbooks.js"></script>
+<script src="/static/dictation.js"></script>
 <script src="/static/logbook.js"></script>
+<script src="/static/draft.js"></script>
 </body>
 </html>
