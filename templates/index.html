@@ -1,15 +1,15 @@
 <!--
   FPSO electronic logbook and compliance report generator.
 
-  Layout (modeled on electronic logbook software):
+  Layout:
     - Left sidebar: icon navigation and the list of logbooks.
-    - Top bar: current logbook, progress of the watch record, language,
-      sample loader and theme switch.
-    - Center: the watch record form, grouped into sections.
-    - Right: report status and the generated report.
+    - Top bar: logbook title, progress (Deck watch form), language,
+      sample loader and dark screen switch.
+    - Center: the Deck watch form, or the entry form for the selected logbook.
+    - Right: reminders, compliance status and the generated report.
 
-  Element IDs are used by static/app.js. Do not rename them without
-  updating app.js. Styles live in static/style.css.
+  Element IDs are used by static/app.js and static/logbook.js.
+  Do not rename them without updating those files.
 -->
 <!DOCTYPE html>
 <html lang="en" data-theme="system">
@@ -28,28 +28,22 @@
     <div class="sidebar-logo" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 15l9-9 9 9M6 13v7h12v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </div>
-    <nav class="sidebar-icons">
-      <button class="icon-btn is-active" type="button" title="Logbooks" aria-label="Logbooks">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 4h12l4 4v12H4z M8 10h8M8 14h8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
-      </button>
-      <button class="icon-btn" type="button" title="Checklists" aria-label="Checklists">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-      </button>
-      <button class="icon-btn" type="button" title="Reports" aria-label="Reports">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 19V9M12 19V5M19 19v-7" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-      </button>
+    <nav class="sidebar-icons" aria-label="Sections">
+      <span class="icon-btn is-active" title="Logbooks"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 4h12l4 4v12H4z M8 10h8M8 14h8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>
+      <span class="icon-btn" title="Checklists"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 12l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+      <span class="icon-btn" title="Reports"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 19V9M12 19V5M19 19v-7" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
     </nav>
     <div class="logbook-list">
       <p class="sidebar-title">Logbooks</p>
       <ul>
-        <li class="is-active">Deck Logbook</li>
-        <li>Engine Logbook</li>
-        <li>Radio / GMDSS Logbook</li>
-        <li>Garbage Logbook</li>
-        <li>Oil Record Book</li>
-        <li>Ballast Water Record Book</li>
-        <li>Cargo Record Book</li>
-        <li>Operational Logbook</li>
+        <li data-logbook="deck" class="is-active" aria-current="true">Deck Logbook</li>
+        <li data-logbook="engine">Engine Logbook</li>
+        <li data-logbook="radio">Radio / GMDSS Logbook</li>
+        <li data-logbook="garbage">Garbage Record Book</li>
+        <li data-logbook="oil">Oil Record Book Part I</li>
+        <li data-logbook="ballast">Ballast Water Record Book</li>
+        <li data-logbook="cargo">Cargo Record Book</li>
+        <li data-logbook="operational">Operational Logbook</li>
       </ul>
     </div>
   </aside>
@@ -61,15 +55,15 @@
       <div class="crumbs">
         <span class="crumb-muted">Logbooks</span>
         <span class="crumb-sep">/</span>
-        <h1>Deck Logbook</h1>
+        <h1 id="logbookTitle">Deck Logbook</h1>
       </div>
       <div class="topbar-right">
-        <div class="progress" aria-live="polite">
+        <div id="progressWrap" class="progress" aria-live="polite">
           <span class="progress-label">Completed <strong id="progressText">0%</strong></span>
           <span class="progress-track"><span id="progressBar" class="progress-fill"></span></span>
         </div>
         <label class="select-wrap">
-          <span class="sr-only">Report language</span>
+          <span class="sr-only">Language</span>
           <select id="language">
             <option value="en">English</option>
             <option value="pt">Português</option>
@@ -80,119 +74,171 @@
       </div>
     </header>
 
+    <!-- Notice shown on every page: this tool is not an approved record. -->
+    <div class="notice" role="note">
+      <strong>Draft tool.</strong> Entries saved here are not an approved electronic record book.
+      Check your flag state's list of accepted systems before using any record for official purposes.
+    </div>
+
     <div class="workspace">
 
-      <!-- Center: the watch record, shown as a logbook entry. -->
-      <section class="card entry" aria-labelledby="form-title">
-        <div class="card-head">
-          <div>
-            <h2 id="form-title">Watch record</h2>
-            <p class="hint">Fields marked * are required.</p>
+      <!-- Center: entry forms. -->
+      <div class="center-col">
+
+        <!-- Deck logbook: the watch record used to generate the report. -->
+        <section id="watchSection" class="card entry" aria-labelledby="form-title">
+          <div class="card-head">
+            <div>
+              <h2 id="form-title">Watch record</h2>
+              <p class="hint">Fields marked * are required.</p>
+            </div>
           </div>
-        </div>
 
-        <!-- Submit is handled in app.js. novalidate lets app.js show its own messages. -->
-        <form id="logForm" novalidate>
-
-          <div class="section">
-            <h3>Watch</h3>
-            <div class="grid">
-              <div class="field">
-                <label for="vessel_name">Vessel name *</label>
-                <input id="vessel_name" name="vessel_name" required>
-              </div>
-              <div class="field">
-                <label for="chief_officer">Chief officer *</label>
-                <input id="chief_officer" name="chief_officer" required>
-              </div>
-              <div class="field">
-                <label for="date">Date *</label>
-                <input id="date" name="date" type="date" required>
-              </div>
-              <div class="field-pair">
+          <form id="logForm" novalidate>
+            <div class="section">
+              <h3>Watch</h3>
+              <div class="grid">
                 <div class="field">
-                  <label for="watch_start">Start *</label>
-                  <input id="watch_start" name="watch_start" type="time" required>
+                  <label for="vessel_name">Vessel name *</label>
+                  <input id="vessel_name" name="vessel_name" required>
                 </div>
                 <div class="field">
-                  <label for="watch_end">End *</label>
-                  <input id="watch_end" name="watch_end" type="time" required>
+                  <label for="chief_officer">Chief officer *</label>
+                  <input id="chief_officer" name="chief_officer" required>
+                </div>
+                <div class="field">
+                  <label for="date">Date *</label>
+                  <input id="date" name="date" type="date" required>
+                </div>
+                <div class="field-pair">
+                  <div class="field">
+                    <label for="watch_start">Start *</label>
+                    <input id="watch_start" name="watch_start" type="time" required>
+                  </div>
+                  <div class="field">
+                    <label for="watch_end">End *</label>
+                    <input id="watch_end" name="watch_end" type="time" required>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="section">
-            <h3>Operations</h3>
-            <div class="field">
-              <label for="operational_summary">Operational summary *</label>
-              <textarea id="operational_summary" name="operational_summary" rows="3" required></textarea>
-            </div>
-            <div class="grid">
+            <div class="section">
+              <h3>Operations</h3>
               <div class="field">
-                <label for="fuel_oil_quantity">Fuel oil quantity</label>
-                <input id="fuel_oil_quantity" name="fuel_oil_quantity" placeholder="e.g. 2450 tons">
+                <label for="operational_summary">Operational summary *</label>
+                <textarea id="operational_summary" name="operational_summary" rows="3" required></textarea>
+              </div>
+              <div class="grid">
+                <div class="field">
+                  <label for="fuel_oil_quantity">Fuel oil quantity</label>
+                  <input id="fuel_oil_quantity" name="fuel_oil_quantity" placeholder="e.g. 2450 tons">
+                </div>
+                <div class="field">
+                  <label for="weather_conditions">Weather conditions</label>
+                  <input id="weather_conditions" name="weather_conditions" placeholder="e.g. Sea state 3, 15 kn wind">
+                </div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>Equipment and maintenance</h3>
+              <div class="field">
+                <label for="equipment_status">Equipment status (JSON)</label>
+                <textarea id="equipment_status" name="equipment_status" rows="4" class="mono" placeholder='{"separator": "operational", "power_generation": "operational"}'></textarea>
               </div>
               <div class="field">
-                <label for="weather_conditions">Weather conditions</label>
-                <input id="weather_conditions" name="weather_conditions" placeholder="e.g. Sea state 3, 15 kn wind">
+                <label for="maintenance_performed">Maintenance performed <span class="hint">one task per line</span></label>
+                <textarea id="maintenance_performed" name="maintenance_performed" rows="3"></textarea>
               </div>
             </div>
+
+            <div class="section">
+              <h3>Notes</h3>
+              <div class="field">
+                <label for="incidents">Incidents</label>
+                <textarea id="incidents" name="incidents" rows="2" placeholder="Leave empty if none"></textarea>
+              </div>
+              <div class="field">
+                <label for="remarks">Remarks</label>
+                <textarea id="remarks" name="remarks" rows="2"></textarea>
+              </div>
+            </div>
+
+            <div class="form-footer">
+              <p class="hint">Generated reports are drafts. Review them before any official use.</p>
+              <button type="submit" id="generateBtn" class="btn btn-primary">
+                <span class="btn-label">Generate report</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Other logbooks: rendered from static/logbooks.js. -->
+        <section id="logbookSection" class="card entry" hidden>
+          <div class="card-head">
+            <div>
+              <h2>Entry</h2>
+              <p id="lbRef" class="hint"></p>
+            </div>
+          </div>
+
+          <details class="checklist-box" open>
+            <summary>What a complete record contains</summary>
+            <ul id="lbChecklist" class="checklist"></ul>
+          </details>
+
+          <div class="section">
+            <div class="field">
+              <label for="lbType">Entry type</label>
+              <select id="lbType"></select>
+            </div>
           </div>
 
           <div class="section">
-            <h3>Equipment and maintenance</h3>
-            <div class="field">
-              <label for="equipment_status">Equipment status (JSON)</label>
-              <textarea id="equipment_status" name="equipment_status" rows="4" class="mono" placeholder='{"separator": "operational", "power_generation": "operational"}'></textarea>
-            </div>
-            <div class="field">
-              <label for="maintenance_performed">Maintenance performed <span class="hint">one task per line</span></label>
-              <textarea id="maintenance_performed" name="maintenance_performed" rows="3"></textarea>
-            </div>
-          </div>
-
-          <div class="section">
-            <h3>Notes</h3>
-            <div class="field">
-              <label for="incidents">Incidents</label>
-              <textarea id="incidents" name="incidents" rows="2" placeholder="Leave empty if none"></textarea>
-            </div>
-            <div class="field">
-              <label for="remarks">Remarks</label>
-              <textarea id="remarks" name="remarks" rows="2"></textarea>
-            </div>
+            <div id="lbFields" class="fields-grid"></div>
+            <p class="hint">Tap the microphone to dictate into a field. Check the text before saving.</p>
           </div>
 
           <div class="form-footer">
-            <p class="hint">Generated reports are drafts. Review them before any official use.</p>
-            <button type="submit" id="generateBtn" class="btn btn-primary">
-              <span class="btn-label">Generate report</span>
-              <span class="spinner" aria-hidden="true"></span>
-            </button>
+            <p id="lbMessage" class="status" role="status" aria-live="polite"></p>
+            <button type="button" id="lbSave" class="btn btn-primary">Save entry</button>
           </div>
-        </form>
-      </section>
 
-      <!-- Right: status and report. app.js fills #status and #report. -->
-      <section class="card report-panel" aria-labelledby="report-title">
-        <div class="card-head">
-          <h2 id="report-title">Compliance report</h2>
-        </div>
-        <div id="status" class="status" role="status" aria-live="polite"></div>
-        <div id="report" class="report">
-          <div class="empty">
-            <p>No report yet.</p>
-            <p class="hint">Complete the watch record and select Generate report.</p>
+          <div class="section">
+            <h3>Recent entries on this device</h3>
+            <ul id="lbEntries" class="entries"></ul>
           </div>
-        </div>
-      </section>
+        </section>
+
+      </div>
+
+      <!-- Right: reminders, report and status. -->
+      <div class="side-col">
+        <section id="reminders" class="card reminders" aria-label="Reminders"></section>
+
+        <section class="card report-panel" aria-labelledby="report-title">
+          <div class="card-head">
+            <h2 id="report-title">Compliance report</h2>
+          </div>
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+          <div id="report" class="report">
+            <div class="empty">
+              <p>No report yet.</p>
+              <p class="hint">Complete the watch record and select Generate report.</p>
+            </div>
+          </div>
+        </section>
+      </div>
 
     </div>
   </div>
 </div>
 
-<!-- Loaded last so the elements above exist when the script runs. -->
+<!-- Loaded in order: app (watch form and report), logbook definitions, logbook UI. -->
 <script src="/static/app.js"></script>
+<script src="/static/logbooks.js"></script>
+<script src="/static/logbook.js"></script>
 </body>
 </html>
