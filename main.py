@@ -24,6 +24,9 @@ import os
 import re
 from datetime import datetime
 from anthropic import Anthropic
+import logging
+
+logger = logging.getLogger("fpso_compliance")
 
 # Load variables from a local .env file into the process environment.
 # Must run before anything reads ANTHROPIC_API_KEY.
@@ -38,15 +41,22 @@ app = FastAPI(
 )
 
 # CORS (Cross-Origin Resource Sharing) middleware.
-# Allows browsers on any origin to call this API. This is convenient for
-# local development but should be restricted to known origins before
-# deployment.
+# Only origins listed in ALLOWED_ORIGINS (comma-separated) may call the API
+# from a browser. Defaults to the local web UI. Wildcard origins are not
+# allowed together with credentials, so none is used here.
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000"
+    ).split(",")
+    if origin.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 # Anthropic API client. Reads ANTHROPIC_API_KEY from the environment.
@@ -295,7 +305,7 @@ async def generate_report(request: ReportRequest):
         # very long reply is cut off rather than run on. Each request is
         # independent: no conversation history is kept.
         message = client.messages.create(
-            model="claude-opus-5",
+            model=os.getenv("CLAUDE_MODEL", "claude-opus-5-5"),
             max_tokens=2000,
             messages=[
                 {
@@ -337,10 +347,12 @@ async def generate_report(request: ReportRequest):
     except HTTPException:
         # Already an HTTP error with a status code: re-raise it unchanged.
         raise
-    except Exception as e:
+    except Exception:
         # Anything else (for example, an API call failure) becomes a 500.
-        # Note: the message exposes internal error text to the client.
-        raise HTTPException(status_code=500, detail=f"Error generating report: {str(e)}")
+        # The full error is logged on the server only, so internal details
+        # and any credential fragments never reach the client.
+        logger.exception("Report generation failed")
+        raise HTTPException(status_code=500, detail="Error generating report")
 
 # Declared as POST for compatibility with app.js. Semantically this is a
 # read, so GET would be the more standard choice.
@@ -388,8 +400,12 @@ except Exception:
     pass
 
 # Direct execution (python main.py): start the server with uvicorn.
-# host 0.0.0.0 listens on all network interfaces. Use 127.0.0.1 to
-# restrict access to this machine.
+# Listens on 127.0.0.1 (this machine only) by default. Set HOST=0.0.0.0
+# explicitly only when the server sits behind an authenticated proxy.
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(
+        app,
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "8000")),
+    )
