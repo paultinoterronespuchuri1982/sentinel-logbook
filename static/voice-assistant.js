@@ -27,7 +27,9 @@
 
   // Spoken commands, in English and Portuguese/Spanish.
   const SKIP_WORDS = ["next", "skip", "siguiente", "próximo", "proximo", "pular", "pule"];
-  const REPEAT_WORDS = ["repeat", "repetir", "repita", "repete"];
+  const REPEAT_WORDS = ["repeat", "repetir", "repita", "repete", "corrija", "corrige", "corregir", "corrigir"];
+  const YES_WORDS = ["yes", "sí", "si", "sim", "correcto", "correto", "ok", "okay", "confirm", "confirmo", "confirmar"];
+  const NO_WORDS = ["no", "não", "nao", "errado", "incorreto", "wrong"];
   const STOP_WORDS = ["stop", "parar", "pare", "terminar", "finish", "fim"];
   const MAX_SILENT = 3;
 
@@ -108,11 +110,22 @@
     return null;
   }
 
+  function isWord(text, list) {
+    return list.includes(normalize(text));
+  }
+
   // Returns the value for the field, or null if the answer does not fit it.
   function valueFor(input, answer) {
     if (input.type === "time") return parseTime(answer);
     if (input.type === "date") return parseDate(answer);
+    if (input.type === "number") return parseNumber(answer);
     return answer;
+  }
+
+  // Keeps decimals ("2450.5", "2450,5"). normalize() would remove the dot, so it is not used here.
+  function parseNumber(text) {
+    const m = text.toLowerCase().replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+    return m ? m[0] : null;
   }
 
   function parseTime(text) {
@@ -178,6 +191,8 @@
         continue;
       }
       silent = 0;
+      // Show what was understood, so a wrong recognition is visible at once.
+      show(tr("Heard: ") + answer);
 
       const command = commandOf(answer);
       if (command === "stop") break;
@@ -190,14 +205,43 @@
         continue;
       }
 
-      field.input.value = value;
-      // Notify the page so the progress meter and the draft update.
-      field.input.dispatchEvent(new Event("input", { bubbles: true }));
+      // Fill the field, then read it back and ask for confirmation before moving on.
+      setValue(field.input, value);
       show(tr("Filled: ") + field.label + " = " + value, "ok");
-      i++;
+      await say(field.label + ": " + value + ". " + tr("Say yes to confirm, or say the correct value."));
+      if (!running) break;
+
+      const reply = await listen();
+      if (!running) break;
+      if (reply) show(tr("Heard: ") + reply);
+
+      if (!reply || isWord(reply, YES_WORDS)) { i++; continue; }
+
+      if (isWord(reply, NO_WORDS)) {
+        setValue(field.input, "");
+        continue; // ask the same field again
+      }
+
+      // A spoken value replaces the one read back.
+      const corrected = valueFor(field.input, reply);
+      if (corrected !== null) {
+        setValue(field.input, corrected);
+        show(tr("Filled: ") + field.label + " = " + corrected, "ok");
+        i++;
+        continue;
+      }
+
+      setValue(field.input, "");
+      await say(tr("I did not understand. Say it again."));
     }
 
     finish();
+  }
+
+  // Write a value into a field and notify the page, so the progress meter and the draft update.
+  function setValue(input, value) {
+    input.value = value;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
   function stopEverything() {

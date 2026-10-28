@@ -102,7 +102,8 @@
     let total = 0;
     let thisWeek = 0;
     const hoursByDay = {};
-    dayKeys.forEach((k) => { hoursByDay[k] = 0; });
+    const fuelByDay = {};
+    dayKeys.forEach((k) => { hoursByDay[k] = 0; fuelByDay[k] = 0; });
 
     ids.forEach((id) => {
       const entries = loadEntries(id);
@@ -116,6 +117,9 @@
 
         if (id === "deck" && entry.values && entry.values.date && hoursByDay[entry.values.date] !== undefined) {
           hoursByDay[entry.values.date] += watchMinutes(entry.values.watch_start, entry.values.watch_end) / 60;
+          // Older records may hold text such as "2450 tons"; parseFloat reads the number.
+          const fuel = parseFloat(entry.values.fuel_oil_quantity);
+          if (!isNaN(fuel)) fuelByDay[entry.values.date] += fuel;
         }
       });
       perLogbook[id] = { weeks: weekCounts, total: entries.length };
@@ -145,7 +149,7 @@
     return {
       weeks, weekKeys, days, dayKeys, perLogbook, total, thisWeek,
       reminderRows, onTime, overdue, notRecorded, reminderTotal,
-      hoursByDay, hoursTotal,
+      hoursByDay, hoursTotal, fuelByDay,
     };
   }
 
@@ -194,6 +198,9 @@
     box.style.position = "relative";
     box.style.height = "260px";
     const canvas = document.createElement("canvas");
+    // Screen readers announce the chart title; the values are also in the summary cards.
+    canvas.setAttribute("role", "img");
+    canvas.setAttribute("aria-label", title);
     box.appendChild(canvas);
     section.appendChild(box);
     return canvas;
@@ -290,6 +297,25 @@
       },
       options: chartOptions(false),
     }));
+
+    // Fuel oil per day (tons), only when fuel was recorded.
+    if (Object.values(data.fuelByDay).some((v) => v > 0)) {
+      const fuelCanvas = addChartBox(tr("Fuel oil per day (tons)"));
+      charts.push(new Chart(fuelCanvas, {
+        type: "line",
+        data: {
+          labels: data.days.map(shortDate),
+          datasets: [{
+            label: tr("Fuel oil quantity (tons)"),
+            data: data.dayKeys.map((k) => Math.round(data.fuelByDay[k] * 10) / 10),
+            borderColor: COLORS[0],
+            backgroundColor: COLORS[0],
+            tension: 0.2,
+          }],
+        },
+        options: chartOptions(false),
+      }));
+    }
   }
 
   // ----- Opening and closing -----

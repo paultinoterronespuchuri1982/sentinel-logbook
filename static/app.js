@@ -51,7 +51,9 @@ function fillForm(sample) {
   document.getElementById("watch_start").value = sample.watch_start || "";
   document.getElementById("watch_end").value = sample.watch_end || "";
   document.getElementById("chief_officer").value = sample.chief_officer || "";
-  document.getElementById("fuel_oil_quantity").value = sample.fuel_oil_quantity || "";
+  // The field is numeric: keep only the number from samples such as "2450 tons".
+  const fuel = parseFloat(sample.fuel_oil_quantity);
+  document.getElementById("fuel_oil_quantity").value = isNaN(fuel) ? "" : fuel;
   document.getElementById("operational_summary").value = sample.operational_summary || "";
   // The equipment object is shown as indented JSON so it can be edited.
   document.getElementById("equipment_status").value = sample.equipment_status

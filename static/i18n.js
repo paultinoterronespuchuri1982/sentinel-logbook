@@ -36,6 +36,14 @@ const PT = {
   "Say the time, for example 8 30.": "Diga a hora, por exemplo 8 30.",
   "Say the date, for example 28/10/2026.": "Diga a data, por exemplo 28/10/2026.",
 
+  // ----- Voice and charts (added with the fuel field and confirmation) -----
+  "Heard: ": "Escutado: ",
+  "Say yes to confirm, or say the correct value.": "Diga sim para confirmar, ou diga o valor correto.",
+  "Fuel oil quantity (tons)": "Quantidade de óleo combustível (toneladas)",
+  "Fuel oil per day (tons)": "Óleo combustível por dia (toneladas)",
+  "Fuel consumption per day chart (fuel field is numeric, in tons)": "Gráfico de consumo diário de combustível (campo numérico, em toneladas)",
+  "Emissions estimate from fuel (not an official CII or EU-MRV calculation)": "Estimativa de emissões a partir do combustível (não é cálculo oficial de CII ou EU-MRV)",
+
   // ----- Statistics -----
   "Statistics": "Estatísticas",
   "Statistics from the records saved on this device.": "Estatísticas dos registros salvos neste dispositivo.",
