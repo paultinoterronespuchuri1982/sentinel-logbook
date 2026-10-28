@@ -1,22 +1,30 @@
 /**
- * Front-end logic for the compliance report page.
+ * Front-end logic for the Deck watch record and the compliance report.
  *
  * Responsibilities:
  *   - Load sample logs into the form (POST /api/sample-logs).
  *   - Collect the form into a ReportRequest and submit it
  *     (POST /api/generate-report).
- *   - Render the returned report sections into the page.
+ *   - Render the returned report sections, in the current language.
+ *   - Show progress for the required fields.
  *
- * Relies on element IDs defined in templates/index.html.
+ * Text is translated with tr() from static/i18n.js. The report language
+ * follows the language selector.
  */
 
 // References to page elements, looked up once at load time.
-const form = document.getElementById("logForm");              // Log form
+const form = document.getElementById("logForm");              // Watch record form
 const statusEl = document.getElementById("status");           // Status message line
 const reportEl = document.getElementById("report");           // Report output area
 const generateBtn = document.getElementById("generateBtn");   // Submit button
 const loadSampleBtn = document.getElementById("loadSample");  // "Load sample" button
-const languageSelect = document.getElementById("language");   // Report language select
+const languageSelect = document.getElementById("language");   // Language selector (UI and report)
+const progressBar = document.getElementById("progressBar");   // Progress bar fill
+const progressText = document.getElementById("progressText"); // Progress percentage
+
+// The last report returned by the API, kept so it can be shown in the new language.
+let lastReport = null;
+let lastMeta = null;
 
 /**
  * Show a status message below the form.
@@ -59,13 +67,14 @@ function fillForm(sample) {
 // "Load sample" button: fetch sample data and fill the form with it.
 loadSampleBtn.addEventListener("click", async () => {
   try {
-    setStatus("Loading sample logs…");
+    setStatus(tr("Loading sample logs…"));
     // Request the sample data from the server (no body is needed).
     const res = await fetch("/api/sample-logs", { method: "POST" });
-    if (!res.ok) throw new Error("Failed to load sample logs");
+    if (!res.ok) throw new Error(tr("Failed to load sample logs"));
     const sample = await res.json();
     fillForm(sample);
-    setStatus("Sample logs loaded.", "ok");
+    updateProgress();
+    setStatus(tr("Sample logs loaded."), "ok");
   } catch (err) {
     setStatus(err.message, "err");
   }
@@ -84,14 +93,14 @@ function parseEquipmentStatus(raw) {
   try {
     return JSON.parse(raw);
   } catch (err) {
-    throw new Error("Equipment Status must be valid JSON");
+    throw new Error(tr("Equipment Status must be valid JSON"));
   }
 }
 
 /**
  * Render the report sections into the report container.
  * Sections with empty values are skipped. Array values (such as the
- * compliance checklist) become bullet lists; other values become paragraphs.
+ * compliance checklist) become check lists; other values become paragraphs.
  *
  * @param {object} report - The `report` object from the API response.
  */
@@ -114,12 +123,11 @@ function renderReport(report) {
   for (const [title, content] of sections) {
     if (content === undefined || content === null || content === "") continue;
 
-    // Each section is a card: a heading and its content.
     const card = document.createElement("article");
     card.className = "report-card";
 
     const heading = document.createElement("h3");
-    heading.textContent = title;
+    heading.textContent = tr(title);
     card.appendChild(heading);
 
     if (Array.isArray(content)) {
@@ -143,8 +151,18 @@ function renderReport(report) {
   }
 }
 
+/** Show the report again after a language change, without a new request. */
+function refreshReport() {
+  if (!lastReport) return;
+  renderReport(lastReport);
+  if (lastMeta) {
+    const when = new Date(lastMeta.generated_at).toLocaleString(currentLang === "pt" ? "pt-BR" : "en-US");
+    setStatus(tr("Report generated for ") + lastMeta.vessel_name + tr(" at ") + when, "ok");
+  }
+}
+
 /**
- * Submit handler for the log form.
+ * Submit handler for the watch record.
  * Builds the request body from the form fields, calls the API, and
  * renders the report or shows the error. The button is disabled while
  * the request is in flight.
@@ -195,7 +213,7 @@ form.addEventListener("submit", async (e) => {
 
   // Disable the button while the request runs to prevent duplicate submissions.
   generateBtn.disabled = true;
-  setStatus("Generating compliance report…");
+  setStatus(tr("Generating compliance report…"));
 
   try {
     // POST the JSON body. On error, the server sends { "detail": "..." }.
@@ -208,11 +226,13 @@ form.addEventListener("submit", async (e) => {
     // Read the body even on error, because FastAPI sends error details as JSON.
     const data = await res.json();
     // A non-2xx status is an error. Use the server's message when it has one.
-    if (!res.ok) throw new Error(data.detail || "Failed to generate report");
+    if (!res.ok) throw new Error(data.detail || tr("Failed to generate report"));
 
-    // Show the report and a confirmation line with vessel and local time.
+    // Keep the report so it can be shown again in the other language.
+    lastReport = data.report;
+    lastMeta = { vessel_name: data.vessel_name, generated_at: data.generated_at };
     renderReport(data.report);
-    setStatus(`Report generated for ${data.vessel_name} at ${new Date(data.generated_at).toLocaleString()}`, "ok");
+    refreshReport();
   } catch (err) {
     // Network failures and server errors both end here.
     setStatus(err.message, "err");
@@ -222,10 +242,7 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-/* ---------- Progress meter (like the "Completed %" checklist bar) ---------- */
-
-const progressBar = document.getElementById("progressBar");   // Fill of the progress bar
-const progressText = document.getElementById("progressText"); // Percentage text
+/* ---------- Progress meter ---------- */
 
 /**
  * Update the progress bar from the required fields. A required field counts
@@ -239,39 +256,9 @@ function updateProgress() {
   progressText.textContent = percent + "%";
 }
 
-// Recalculate while the user types, and after a sample is loaded.
+// Recalculate while the user types.
 form.addEventListener("input", updateProgress);
-loadSampleBtn.addEventListener("click", () => setTimeout(updateProgress, 0));
 updateProgress();
 
-/* ---------- Dark screen mode ---------- */
-
-const themeBtn = document.getElementById("themeToggle");
-
-/**
- * Apply a theme by setting data-theme on <html>.
- * "dark" forces dark mode; "system" follows the operating system.
- *
- * @param {"dark"|"system"} theme
- */
-function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  themeBtn.textContent = theme === "dark" ? "Light screen" : "Dark screen";
-  try {
-    localStorage.setItem("theme", theme);
-  } catch (err) {
-    // Storage can be blocked (private mode). The theme still applies for this page.
-  }
-}
-
-themeBtn.addEventListener("click", () => {
-  const current = document.documentElement.getAttribute("data-theme");
-  applyTheme(current === "dark" ? "system" : "dark");
-});
-
-// Restore the saved choice when the page loads.
-try {
-  applyTheme(localStorage.getItem("theme") === "dark" ? "dark" : "system");
-} catch (err) {
-  applyTheme("system");
-}
+// Re-translate the report when the language changes.
+document.addEventListener("langchange", refreshReport);

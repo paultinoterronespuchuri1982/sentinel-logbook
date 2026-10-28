@@ -4,20 +4,24 @@
   Layout:
     - Left sidebar: icon navigation and the list of logbooks.
     - Top bar: logbook title, progress (Deck watch form), language,
-      sample loader and dark screen switch.
+      appearance (theme and accent) and sample loader.
     - Center: the Deck watch form, or the entry form for the selected logbook.
-    - Right: reminders, compliance status and the generated report.
+    - Right: reminders and the generated report.
 
-  Element IDs are used by static/app.js and static/logbook.js.
-  Do not rename them without updating those files.
+  Text marked with data-i18n is translated by static/i18n.js.
+  Element IDs are used by static/app.js, static/logbook.js, static/i18n.js
+  and static/theme.js. Do not rename them without updating those files.
 -->
 <!DOCTYPE html>
-<html lang="en" data-theme="system">
+<html lang="en" data-theme="day" data-accent="teal">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="light dark">
 <title>Sentinel Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -34,16 +38,16 @@
       <span class="icon-btn" title="Reports"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M5 19V9M12 19V5M19 19v-7" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
     </nav>
     <div class="logbook-list">
-      <p class="sidebar-title">Logbooks</p>
+      <p class="sidebar-title" data-i18n="Logbooks">Logbooks</p>
       <ul>
-        <li data-logbook="deck" class="is-active" aria-current="true">Deck Logbook</li>
-        <li data-logbook="engine">Engine Logbook</li>
-        <li data-logbook="radio">Radio / GMDSS Logbook</li>
-        <li data-logbook="garbage">Garbage Record Book</li>
-        <li data-logbook="oil">Oil Record Book Part I</li>
-        <li data-logbook="ballast">Ballast Water Record Book</li>
-        <li data-logbook="cargo">Cargo Record Book</li>
-        <li data-logbook="operational">Operational Logbook</li>
+        <li data-logbook="deck" class="is-active" aria-current="true" data-i18n="Deck Logbook">Deck Logbook</li>
+        <li data-logbook="engine" data-i18n="Engine Logbook">Engine Logbook</li>
+        <li data-logbook="radio" data-i18n="Radio / GMDSS Logbook">Radio / GMDSS Logbook</li>
+        <li data-logbook="garbage" data-i18n="Garbage Record Book">Garbage Record Book</li>
+        <li data-logbook="oil" data-i18n="Oil Record Book Part I">Oil Record Book Part I</li>
+        <li data-logbook="ballast" data-i18n="Ballast Water Record Book">Ballast Water Record Book</li>
+        <li data-logbook="cargo" data-i18n="Cargo Record Book">Cargo Record Book</li>
+        <li data-logbook="operational" data-i18n="Operational Logbook">Operational Logbook</li>
       </ul>
     </div>
   </aside>
@@ -53,31 +57,53 @@
     <!-- Top bar: title, progress, and global controls. -->
     <header class="topbar">
       <div class="crumbs">
-        <span class="crumb-muted">Logbooks</span>
+        <span class="crumb-muted" data-i18n="Logbooks">Logbooks</span>
         <span class="crumb-sep">/</span>
-        <h1 id="logbookTitle">Deck Logbook</h1>
+        <h1 id="logbookTitle" data-i18n="Deck Logbook">Deck Logbook</h1>
       </div>
       <div class="topbar-right">
         <div id="progressWrap" class="progress" aria-live="polite">
-          <span class="progress-label">Completed <strong id="progressText">0%</strong></span>
+          <span class="progress-label"><span data-i18n="Completed">Completed</span> <strong id="progressText">0%</strong></span>
           <span class="progress-track"><span id="progressBar" class="progress-fill"></span></span>
         </div>
-        <label class="select-wrap">
-          <span class="sr-only">Language</span>
-          <select id="language">
+
+        <label class="control">
+          <span data-i18n="Language">Language</span>
+          <select id="language" aria-label="Language">
             <option value="en">English</option>
             <option value="pt">Português</option>
           </select>
         </label>
-        <button id="loadSample" type="button" class="btn btn-ghost">Load sample</button>
-        <button id="themeToggle" type="button" class="btn btn-ghost" aria-label="Toggle dark screen mode">Dark screen</button>
+
+        <label class="control">
+          <span data-i18n="Theme">Theme</span>
+          <select id="themeSelect" aria-label="Theme">
+            <option value="day" data-i18n="Day">Day</option>
+            <option value="night" data-i18n="Night">Night</option>
+            <option value="red" data-i18n="Red night (night vision)">Red night (night vision)</option>
+            <option value="system" data-i18n="Follow system">Follow system</option>
+          </select>
+        </label>
+
+        <label class="control">
+          <span data-i18n="Accent color">Accent color</span>
+          <select id="accentSelect" aria-label="Accent color">
+            <option value="teal" data-i18n="Teal">Teal</option>
+            <option value="indigo" data-i18n="Indigo">Indigo</option>
+            <option value="emerald" data-i18n="Emerald">Emerald</option>
+            <option value="amber" data-i18n="Amber">Amber</option>
+            <option value="rose" data-i18n="Rose">Rose</option>
+          </select>
+        </label>
+
+        <button id="loadSample" type="button" class="btn btn-ghost" data-i18n="Load sample">Load sample</button>
       </div>
     </header>
 
     <!-- Notice shown on every page: this tool is not an approved record. -->
     <div class="notice" role="note">
-      <strong>Draft tool.</strong> Entries saved here are not an approved electronic record book.
-      Check your flag state's list of accepted systems before using any record for official purposes.
+      <strong data-i18n="Draft tool.">Draft tool.</strong>
+      <span data-i18n="Entries saved here are not an approved electronic record book. Check your flag state's list of accepted systems before using any record for official purposes.">Entries saved here are not an approved electronic record book. Check your flag state's list of accepted systems before using any record for official purposes.</span>
     </div>
 
     <div class="workspace">
@@ -86,37 +112,37 @@
       <div class="center-col">
 
         <!-- Deck logbook: the watch record used to generate the report. -->
-        <section id="watchSection" class="card entry" aria-labelledby="form-title">
+        <section id="watchSection" class="card" aria-labelledby="form-title">
           <div class="card-head">
             <div>
-              <h2 id="form-title">Watch record</h2>
-              <p class="hint">Fields marked * are required.</p>
+              <h2 id="form-title" data-i18n="Watch record">Watch record</h2>
+              <p class="hint" data-i18n="Fields marked * are required.">Fields marked * are required.</p>
             </div>
           </div>
 
           <form id="logForm" novalidate>
             <div class="section">
-              <h3>Watch</h3>
+              <h3 data-i18n="Watch">Watch</h3>
               <div class="grid">
                 <div class="field">
-                  <label for="vessel_name">Vessel name *</label>
+                  <label for="vessel_name"><span data-i18n="Vessel name">Vessel name</span> *</label>
                   <input id="vessel_name" name="vessel_name" required>
                 </div>
                 <div class="field">
-                  <label for="chief_officer">Chief officer *</label>
+                  <label for="chief_officer"><span data-i18n="Chief officer">Chief officer</span> *</label>
                   <input id="chief_officer" name="chief_officer" required>
                 </div>
                 <div class="field">
-                  <label for="date">Date *</label>
+                  <label for="date"><span data-i18n="Date">Date</span> *</label>
                   <input id="date" name="date" type="date" required>
                 </div>
                 <div class="field-pair">
                   <div class="field">
-                    <label for="watch_start">Start *</label>
+                    <label for="watch_start"><span data-i18n="Start">Start</span> *</label>
                     <input id="watch_start" name="watch_start" type="time" required>
                   </div>
                   <div class="field">
-                    <label for="watch_end">End *</label>
+                    <label for="watch_end"><span data-i18n="End">End</span> *</label>
                     <input id="watch_end" name="watch_end" type="time" required>
                   </div>
                 </div>
@@ -124,51 +150,51 @@
             </div>
 
             <div class="section">
-              <h3>Operations</h3>
+              <h3 data-i18n="Operations">Operations</h3>
               <div class="field">
-                <label for="operational_summary">Operational summary *</label>
+                <label for="operational_summary"><span data-i18n="Operational summary">Operational summary</span> *</label>
                 <textarea id="operational_summary" name="operational_summary" rows="3" required></textarea>
               </div>
               <div class="grid">
                 <div class="field">
-                  <label for="fuel_oil_quantity">Fuel oil quantity</label>
-                  <input id="fuel_oil_quantity" name="fuel_oil_quantity" placeholder="e.g. 2450 tons">
+                  <label for="fuel_oil_quantity" data-i18n="Fuel oil quantity">Fuel oil quantity</label>
+                  <input id="fuel_oil_quantity" name="fuel_oil_quantity" data-i18n-placeholder="e.g. 2450 tons" placeholder="e.g. 2450 tons">
                 </div>
                 <div class="field">
-                  <label for="weather_conditions">Weather conditions</label>
-                  <input id="weather_conditions" name="weather_conditions" placeholder="e.g. Sea state 3, 15 kn wind">
+                  <label for="weather_conditions" data-i18n="Weather conditions">Weather conditions</label>
+                  <input id="weather_conditions" name="weather_conditions" data-i18n-placeholder="e.g. Sea state 3, 15 kn wind" placeholder="e.g. Sea state 3, 15 kn wind">
                 </div>
               </div>
             </div>
 
             <div class="section">
-              <h3>Equipment and maintenance</h3>
+              <h3 data-i18n="Equipment and maintenance">Equipment and maintenance</h3>
               <div class="field">
-                <label for="equipment_status">Equipment status (JSON)</label>
+                <label for="equipment_status" data-i18n="Equipment status (JSON)">Equipment status (JSON)</label>
                 <textarea id="equipment_status" name="equipment_status" rows="4" class="mono" placeholder='{"separator": "operational", "power_generation": "operational"}'></textarea>
               </div>
               <div class="field">
-                <label for="maintenance_performed">Maintenance performed <span class="hint">one task per line</span></label>
+                <label for="maintenance_performed"><span data-i18n="Maintenance performed">Maintenance performed</span> <span class="hint" data-i18n="one task per line">one task per line</span></label>
                 <textarea id="maintenance_performed" name="maintenance_performed" rows="3"></textarea>
               </div>
             </div>
 
             <div class="section">
-              <h3>Notes</h3>
+              <h3 data-i18n="Notes">Notes</h3>
               <div class="field">
-                <label for="incidents">Incidents</label>
-                <textarea id="incidents" name="incidents" rows="2" placeholder="Leave empty if none"></textarea>
+                <label for="incidents" data-i18n="Incidents">Incidents</label>
+                <textarea id="incidents" name="incidents" rows="2" data-i18n-placeholder="Leave empty if none" placeholder="Leave empty if none"></textarea>
               </div>
               <div class="field">
-                <label for="remarks">Remarks</label>
+                <label for="remarks" data-i18n="Remarks">Remarks</label>
                 <textarea id="remarks" name="remarks" rows="2"></textarea>
               </div>
             </div>
 
             <div class="form-footer">
-              <p class="hint">Generated reports are drafts. Review them before any official use.</p>
+              <p class="hint" data-i18n="Generated reports are drafts. Review them before any official use.">Generated reports are drafts. Review them before any official use.</p>
               <button type="submit" id="generateBtn" class="btn btn-primary">
-                <span class="btn-label">Generate report</span>
+                <span class="btn-label" data-i18n="Generate report">Generate report</span>
                 <span class="spinner" aria-hidden="true"></span>
               </button>
             </div>
@@ -176,57 +202,57 @@
         </section>
 
         <!-- Other logbooks: rendered from static/logbooks.js. -->
-        <section id="logbookSection" class="card entry" hidden>
+        <section id="logbookSection" class="card" hidden>
           <div class="card-head">
             <div>
-              <h2>Entry</h2>
+              <h2 data-i18n="Entry">Entry</h2>
               <p id="lbRef" class="hint"></p>
             </div>
           </div>
 
           <details class="checklist-box" open>
-            <summary>What a complete record contains</summary>
+            <summary data-i18n="What a complete record contains">What a complete record contains</summary>
             <ul id="lbChecklist" class="checklist"></ul>
           </details>
 
           <div class="section">
             <div class="field">
-              <label for="lbType">Entry type</label>
+              <label for="lbType" data-i18n="Entry type">Entry type</label>
               <select id="lbType"></select>
             </div>
           </div>
 
           <div class="section">
             <div id="lbFields" class="fields-grid"></div>
-            <p class="hint">Tap the microphone to dictate into a field. Check the text before saving.</p>
+            <p class="hint" data-i18n="Tap the microphone to dictate into a field. Check the text before saving.">Tap the microphone to dictate into a field. Check the text before saving.</p>
           </div>
 
           <div class="form-footer">
             <p id="lbMessage" class="status" role="status" aria-live="polite"></p>
-            <button type="button" id="lbSave" class="btn btn-primary">Save entry</button>
+            <button type="button" id="lbSave" class="btn btn-primary" data-i18n="Save entry">Save entry</button>
           </div>
 
           <div class="section">
-            <h3>Recent entries on this device</h3>
+            <h3 data-i18n="Recent entries on this device">Recent entries on this device</h3>
             <ul id="lbEntries" class="entries"></ul>
           </div>
         </section>
 
       </div>
 
-      <!-- Right: reminders, report and status. -->
+      <!-- Right: reminders and report. -->
       <div class="side-col">
         <section id="reminders" class="card reminders" aria-label="Reminders"></section>
 
-        <section class="card report-panel" aria-labelledby="report-title">
+        <section class="card" aria-labelledby="report-title">
           <div class="card-head">
-            <h2 id="report-title">Compliance report</h2>
+            <h2 id="report-title" data-i18n="Compliance report">Compliance report</h2>
           </div>
           <div id="status" class="status" role="status" aria-live="polite"></div>
           <div id="report" class="report">
             <div class="empty">
-              <p>No report yet.</p>
-              <p class="hint">Complete the watch record and select Generate report.</p>
+              <p data-i18n="No report yet.">No report yet.</p>
+              <p class="hint" data-i18n="Complete the watch record and select Generate report.">Complete the watch record and select Generate report.</p>
             </div>
           </div>
         </section>
@@ -236,7 +262,9 @@
   </div>
 </div>
 
-<!-- Loaded in order: app (watch form and report), logbook definitions, logbook UI. -->
+<!-- Loaded in order: translations and appearance first, then the pages. -->
+<script src="/static/i18n.js"></script>
+<script src="/static/theme.js"></script>
 <script src="/static/app.js"></script>
 <script src="/static/logbooks.js"></script>
 <script src="/static/logbook.js"></script>

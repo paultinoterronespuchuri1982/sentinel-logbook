@@ -1,9 +1,9 @@
 /**
  * Logbook navigation, entry forms, voice dictation and reminders.
  *
- * Depends on LOGBOOKS (static/logbooks.js) and on the element IDs in
- * templates/index.html. The Deck logbook uses the watch form in app.js;
- * the other logbooks are rendered here from their definitions.
+ * Depends on LOGBOOKS (static/logbooks.js), tr() (static/i18n.js) and the
+ * element IDs in templates/index.html. The Deck logbook uses the watch form
+ * in app.js; the other logbooks are rendered here from their definitions.
  *
  * Data is stored in the browser (localStorage) on this device only.
  */
@@ -56,6 +56,10 @@
     messageEl.className = "status" + (kind ? " " + kind : "");
   }
 
+  function formatDate(ts) {
+    return new Date(ts).toLocaleString(currentLang === "pt" ? "pt-BR" : "en-US");
+  }
+
   // ----- Sidebar and switching -----
   function select(id) {
     const def = LOGBOOKS[id];
@@ -68,7 +72,7 @@
       li.setAttribute("aria-current", on ? "true" : "false");
     });
 
-    titleEl.textContent = def.name;
+    titleEl.textContent = tr(def.name);
     watchSection.hidden = !def.usesWatchForm;
     logbookSection.hidden = !!def.usesWatchForm;
     progressWrap.hidden = !def.usesWatchForm;
@@ -93,22 +97,24 @@
 
   // ----- Rendering a logbook -----
   function renderLogbook(def) {
-    refEl.textContent = def.ref;
+    refEl.textContent = tr(def.ref);
 
     checklistEl.innerHTML = "";
     def.checklist.forEach((item) => {
       const li = document.createElement("li");
-      li.textContent = item;
+      li.textContent = tr(item);
       checklistEl.appendChild(li);
     });
 
+    const previous = typeSelect.value;
     typeSelect.innerHTML = "";
     def.types.forEach((t) => {
       const option = document.createElement("option");
       option.value = t.id;
-      option.textContent = t.label;
+      option.textContent = tr(t.label);
       typeSelect.appendChild(option);
     });
+    if (def.types.some((t) => t.id === previous)) typeSelect.value = previous;
 
     renderFields();
     renderEntries();
@@ -130,7 +136,7 @@
 
       const label = document.createElement("label");
       label.htmlFor = "lb-" + field.id;
-      label.textContent = field.label + (field.required ? " *" : "");
+      label.textContent = tr(field.label) + (field.required ? " *" : "");
       wrap.appendChild(label);
 
       const row = document.createElement("div");
@@ -147,8 +153,6 @@
       }
       input.id = "lb-" + field.id;
       input.name = field.id;
-      input.dataset.required = field.required ? "true" : "false";
-      input.dataset.label = field.label;
       row.appendChild(input);
 
       // Voice button: dictates into this field.
@@ -156,8 +160,8 @@
         const mic = document.createElement("button");
         mic.type = "button";
         mic.className = "mic";
-        mic.title = "Dictate";
-        mic.setAttribute("aria-label", "Dictate " + field.label);
+        mic.title = tr("Dictate");
+        mic.setAttribute("aria-label", tr("Dictate") + " " + tr(field.label));
         mic.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
         mic.addEventListener("click", () => dictate(input, mic));
         row.appendChild(mic);
@@ -176,7 +180,7 @@
   function dictate(target, button) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) {
-      showMessage("Voice input needs Chrome, Edge or Safari.", "err");
+      showMessage(tr("Voice input needs Chrome, Edge or Safari."), "err");
       return;
     }
 
@@ -186,23 +190,26 @@
     recognition.maxAlternatives = 1;
 
     button.classList.add("is-listening");
-    showMessage("Listening… speak now.", "");
+    showMessage(tr("Listening… speak now."), "");
 
     recognition.onresult = (event) => {
       const text = event.results[0][0].transcript;
       target.value = target.value ? target.value + " " + text : text;
       target.dispatchEvent(new Event("input", { bubbles: true }));
-      showMessage("Captured. Check the text before saving.", "ok");
+      showMessage(tr("Captured. Check the text before saving."), "ok");
     };
 
     recognition.onerror = (event) => {
-      showMessage("Voice error: " + event.error + ". Check microphone permission.", "err");
+      showMessage(tr("Voice error: ") + event.error + tr(". Check microphone permission."), "err");
     };
 
     recognition.onend = () => button.classList.remove("is-listening");
 
     try { recognition.start(); }
-    catch (err) { showMessage("Could not start voice input.", "err"); button.classList.remove("is-listening"); }
+    catch (err) {
+      showMessage(tr("Could not start voice input."), "err");
+      button.classList.remove("is-listening");
+    }
   }
 
   // ----- Saving an entry -----
@@ -217,20 +224,21 @@
       const input = document.getElementById("lb-" + field.id);
       const value = input ? input.value.trim() : "";
       values[field.id] = value;
-      if (field.required && value === "") missing.push(field.label);
+      if (field.required && value === "") missing.push(tr(field.label));
     });
 
     if (missing.length) {
-      showMessage("Fill in: " + missing.join(", "), "err");
+      showMessage(tr("Fill in: ") + missing.join(", "), "err");
       return;
     }
 
     const ts = Date.now();
     const list = loadEntries(current);
-    list.unshift({ ts: ts, type: type.id, label: type.label, values: values });
+    // Stored with the type id, not the label, so the record does not depend on the language.
+    list.unshift({ ts: ts, type: type.id, values: values });
 
     if (!saveEntries(current, list)) {
-      showMessage("This browser blocked storage, so the entry was not saved.", "err");
+      showMessage(tr("This browser blocked storage, so the entry was not saved."), "err");
       return;
     }
 
@@ -244,7 +252,7 @@
       if (input) input.value = "";
     });
 
-    showMessage("Entry saved on this device.", "ok");
+    showMessage(tr("Entry saved on this device."), "ok");
     renderEntries();
     renderReminders();
   });
@@ -252,20 +260,22 @@
   // ----- Recent entries -----
   function renderEntries() {
     entriesEl.innerHTML = "";
+    const def = LOGBOOKS[current];
     const list = loadEntries(current).slice(0, 10);
 
     if (!list.length) {
       const li = document.createElement("li");
       li.className = "muted";
-      li.textContent = "No entries yet.";
+      li.textContent = tr("No entries yet.");
       entriesEl.appendChild(li);
       return;
     }
 
     list.forEach((entry) => {
+      const type = def.types.find((t) => t.id === entry.type);
       const li = document.createElement("li");
       const head = document.createElement("strong");
-      head.textContent = new Date(entry.ts).toLocaleString() + " · " + entry.label;
+      head.textContent = formatDate(entry.ts) + " · " + (type ? tr(type.label) : entry.type);
       li.appendChild(head);
 
       const summary = Object.values(entry.values).filter(Boolean).join(" | ");
@@ -278,14 +288,12 @@
   }
 
   // ----- Reminders: what is due and when -----
-  function formatDate(ts) { return new Date(ts).toLocaleString(); }
-
   function renderReminders() {
     const def = LOGBOOKS[current];
     remindersEl.innerHTML = "";
 
     const heading = document.createElement("h3");
-    heading.textContent = "Reminders";
+    heading.textContent = tr("Reminders");
     remindersEl.appendChild(heading);
 
     const list = document.createElement("ul");
@@ -296,26 +304,26 @@
       const li = document.createElement("li");
       const title = document.createElement("div");
       title.className = "reminder-title";
-      title.textContent = r.label;
+      title.textContent = tr(r.label);
       li.appendChild(title);
 
       const status = document.createElement("div");
       status.className = "reminder-status";
 
       if (r.everyDays == null) {
-        status.textContent = "Record when it happens.";
+        status.textContent = tr("Record when it happens.");
       } else {
         const last = lastDone(current, r.id);
         if (!last) {
-          status.textContent = "Not recorded yet.";
+          status.textContent = tr("Not recorded yet.");
           li.classList.add("due");
         } else {
           const next = last + r.everyDays * 86400000;
           if (now > next) {
-            status.textContent = "Overdue. Last recorded " + formatDate(last) + ".";
+            status.textContent = tr("Overdue. Last recorded ") + formatDate(last) + ".";
             li.classList.add("due");
           } else {
-            status.textContent = "Next by " + formatDate(next) + ".";
+            status.textContent = tr("Next by ") + formatDate(next) + ".";
             li.classList.add("ok");
           }
         }
@@ -336,6 +344,14 @@
     }
   });
   observer.observe(statusEl, { attributes: true, attributeFilter: ["class"] });
+
+  // Re-draw the current logbook when the language changes.
+  document.addEventListener("langchange", () => {
+    const keepType = typeSelect.value;
+    select(current);
+    if (keepType && LOGBOOKS[current].types.some((t) => t.id === keepType)) typeSelect.value = keepType;
+    renderFields();
+  });
 
   // Start on the Deck logbook.
   select("deck");
