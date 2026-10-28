@@ -37,6 +37,7 @@ const PT = {
   "Say the date, for example 28/10/2026.": "Diga a data, por exemplo 28/10/2026.",
 
   // ----- Voice and charts (added with the fuel field and confirmation) -----
+  "Voice language": "Idioma da voz",
   "Heard: ": "Escutado: ",
   "Say yes to confirm, or say the correct value.": "Diga sim para confirmar, ou diga o valor correto.",
   "Fuel oil quantity (tons)": "Quantidade de óleo combustível (toneladas)",
