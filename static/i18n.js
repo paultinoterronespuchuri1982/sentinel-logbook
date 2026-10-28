@@ -60,6 +60,9 @@ const PT = {
   "Overdue": "Vencido",
   "Not recorded": "Não registrado",
   "Watch hours": "Horas de guarda",
+  "Needs attention": "Precisa de atenção",
+  "Nothing needs attention.": "Nada precisa de atenção.",
+  "vs last week": "em relação à semana passada",
   "Statistics: records per week, reminders on time and watch hours, as charts from this device's records": "Estatísticas: registros por semana, lembretes em dia e horas de guarda, em gráficos a partir dos registros deste dispositivo",
   "Fuel consumption trend and emissions estimate (needs a numeric fuel field)": "Tendência de consumo de combustível e estimativa de emissões (precisa de um campo numérico de combustível)",
 

@@ -101,6 +101,7 @@
     const perLogbook = {};
     let total = 0;
     let thisWeek = 0;
+    let lastWeek = 0;
     const hoursByDay = {};
     const fuelByDay = {};
     dayKeys.forEach((k) => { hoursByDay[k] = 0; fuelByDay[k] = 0; });
@@ -114,6 +115,7 @@
         const idx = weekKeys.indexOf(weekKey);
         if (idx >= 0) weekCounts[idx]++;
         if (weekKey === weekKeys[weekKeys.length - 1]) thisWeek++;
+        if (weekKey === weekKeys[weekKeys.length - 2]) lastWeek++;
 
         if (id === "deck" && entry.values && entry.values.date && hoursByDay[entry.values.date] !== undefined) {
           hoursByDay[entry.values.date] += watchMinutes(entry.values.watch_start, entry.values.watch_end) / 60;
@@ -127,6 +129,8 @@
 
     // Reminders: on time, overdue or not recorded.
     const reminderRows = [];
+    // Reminders that need attention now: overdue or never recorded.
+    const attention = [];
     let onTime = 0;
     let overdue = 0;
     let notRecorded = 0;
@@ -136,9 +140,15 @@
       def.reminders.forEach((r) => {
         if (r.everyDays == null) return;
         const last = lastDone(id, r.id);
-        if (!last) { row.notRecorded++; notRecorded++; }
-        else if (now <= last + r.everyDays * DAY) { row.onTime++; onTime++; }
-        else { row.overdue++; overdue++; }
+        if (!last) {
+          row.notRecorded++; notRecorded++;
+          attention.push({ id: id, label: r.label, overdue: false });
+        } else if (now <= last + r.everyDays * DAY) {
+          row.onTime++; onTime++;
+        } else {
+          row.overdue++; overdue++;
+          attention.push({ id: id, label: r.label, overdue: true });
+        }
       });
       if (row.onTime + row.overdue + row.notRecorded > 0) reminderRows.push(row);
     });
@@ -147,8 +157,8 @@
     const hoursTotal = Object.values(hoursByDay).reduce((a, b) => a + b, 0);
 
     return {
-      weeks, weekKeys, days, dayKeys, perLogbook, total, thisWeek,
-      reminderRows, onTime, overdue, notRecorded, reminderTotal,
+      weeks, weekKeys, days, dayKeys, perLogbook, total, thisWeek, lastWeek,
+      reminderRows, attention, onTime, overdue, notRecorded, reminderTotal,
       hoursByDay, hoursTotal, fuelByDay,
     };
   }
@@ -241,11 +251,37 @@
       return;
     }
 
-    // Summary cards.
+    // Items that need attention come first: the officer sees them before the charts.
+    const attentionTitle = document.createElement("h3");
+    attentionTitle.textContent = tr("Needs attention");
+    section.appendChild(attentionTitle);
+    if (!data.attention.length) {
+      const ok = document.createElement("p");
+      ok.className = "muted";
+      ok.textContent = tr("Nothing needs attention.");
+      section.appendChild(ok);
+    } else {
+      const list = document.createElement("ul");
+      list.className = "entries";
+      data.attention.forEach((item) => {
+        const li = document.createElement("li");
+        // The status is written as text as well as a symbol, so color is not the only signal.
+        const status = document.createElement("strong");
+        status.textContent = (item.overdue ? "! " + tr("Overdue") : "○ " + tr("Not recorded")) + ": ";
+        li.appendChild(status);
+        li.appendChild(document.createTextNode(tr(LOGBOOKS[item.id].name) + " · " + tr(item.label)));
+        list.appendChild(li);
+      });
+      section.appendChild(list);
+    }
+
+    // Summary cards: the headline figure first, then the trend.
     const grid = document.createElement("div");
     grid.className = "fields-grid";
     addCard(grid, String(data.total), tr("Total records"));
-    addCard(grid, String(data.thisWeek), tr("Records this week"));
+    const diff = data.thisWeek - data.lastWeek;
+    const trend = diff > 0 ? "▲ +" + diff : diff < 0 ? "▼ " + diff : "= 0";
+    addCard(grid, String(data.thisWeek), tr("Records this week") + " · " + trend + " " + tr("vs last week"));
     const pct = data.reminderTotal ? Math.round((data.onTime / data.reminderTotal) * 100) : 0;
     addCard(grid, pct + "%", tr("Reminders on time"));
     addCard(grid, data.hoursTotal.toFixed(1), tr("Watch hours, last 14 days"));
