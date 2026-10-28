@@ -690,3 +690,42 @@ input[type="date"], input[type="time"] { color-scheme: light dark; }
 /* ---------- Watch form footer actions ---------- */
 .footer-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .form-footer > .status { flex-basis: 100%; margin: 0; }
+
+/* ----- Brand: Sentinel Log, at the start of the top bar ----- */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 14px;
+  padding-right: 14px;
+  border-right: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  white-space: nowrap;
+}
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.brand-name {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+}
+.brand-name > span {
+  font-weight: 400;
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+/* ----- Dictation preview: what was heard and how it is understood ----- */
+.dictation-preview {
+  border-left: 3px solid var(--accent);
+}
+.dictation-preview .muted {
+  word-break: break-word;
+}

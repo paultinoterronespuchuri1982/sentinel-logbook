@@ -31,6 +31,8 @@ const VOICE_STRINGS = {
     allOk: "Listo. Revise y guarde el registro.",
     guideTitle: "Cómo dictar todo",
     guideLead: "Diga cada campo con su nombre, seguido de su valor. Ejemplo:",
+    previewTitle: "Lo que escucho y cómo lo entiendo",
+    previewMissing: "falta",
   },
   "pt-BR": {
     start: "Vamos preencher o registro. Diga parar para terminar, ou próximo para pular um campo.",
@@ -55,6 +57,8 @@ const VOICE_STRINGS = {
     allOk: "Pronto. Revise e salve o registro.",
     guideTitle: "Como ditar tudo",
     guideLead: "Diga cada campo com o nome, seguido do valor. Exemplo:",
+    previewTitle: "O que ouço e como entendo",
+    previewMissing: "falta",
   },
   "en-US": {
     start: "Let's fill the record. Say stop to finish, or next to skip a field.",
@@ -79,6 +83,8 @@ const VOICE_STRINGS = {
     allOk: "Done. Check the record and save it.",
     guideTitle: "How to dictate everything",
     guideLead: "Say each field by its name, followed by its value. Example:",
+    previewTitle: "What I hear and how I understand it",
+    previewMissing: "missing",
   },
 };
 

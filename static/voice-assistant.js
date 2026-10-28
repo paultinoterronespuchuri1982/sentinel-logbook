@@ -28,14 +28,14 @@
 
   const btn = document.getElementById("voiceBtn");
   const allBtn = document.getElementById("voiceAllBtn");
-  const langSelect = document.getElementById("voiceLang");
   const guideBox = document.getElementById("voiceGuide");
   const watchSection = document.getElementById("watchSection");
   const logbookSection = document.getElementById("logbookSection");
   const watchMessage = document.getElementById("watchMessage");
   const lbMessage = document.getElementById("lbMessage");
 
-  const LANG_KEY = "voiceLang";
+  // The voice language follows the interface language.
+  const UI_TO_VOICE = { en: "en-US", pt: "pt-BR", es: "es-ES" };
   const DEFAULT_LANG = "es-ES";
   const MAX_SILENT = 3;
 
@@ -274,8 +274,7 @@
   // ----- Language and text -----
 
   function voiceLang() {
-    const v = langSelect ? langSelect.value : DEFAULT_LANG;
-    return VOICE_STRINGS[v] ? v : DEFAULT_LANG;
+    return UI_TO_VOICE[currentLang] || DEFAULT_LANG;
   }
 
   function T() { return VOICE_STRINGS[voiceLang()]; }
@@ -340,7 +339,10 @@
     return "text";
   }
 
+  // The preview belongs to the logbook it was dictated in: hide it when the view changes.
   function renderGuide() {
+    const preview = document.getElementById("dictationPreview");
+    if (preview) preview.hidden = true;
     if (!guideBox) return;
     guideBox.innerHTML = "";
     const fields = collectFields();
@@ -400,7 +402,7 @@
   }
 
   // A long dictation: keeps listening until stop() is called. Resolves with all the text heard.
-  function listenLong() {
+  function listenLong(onText) {
     return new Promise((resolve) => {
       let text = "";
       const r = newRecognition(true);
@@ -409,6 +411,7 @@
           if (event.results[i].isFinal) text += " " + event.results[i][0].transcript;
         }
         show(T().heard + text.trim());
+        if (onText) onText(text.trim());
       };
       r.onerror = () => {};
       r.onend = () => resolve(text.trim());
@@ -562,13 +565,51 @@
     finish();
   }
 
+  // Shows what was heard and, for each field, the value it would get, so it can be checked.
+  function renderPreview(text, fields) {
+    const box = document.getElementById("dictationPreview");
+    if (!box) return;
+    const t = T();
+    const result = fillFromSpeech(text, fields);
+    const filled = new Map(result.filled.map((item) => [item.field, item.value]));
+    const unclear = new Map(result.unclear.map((item) => [item.field, item.text]));
+
+    box.innerHTML = "";
+    const title = document.createElement("strong");
+    title.textContent = t.previewTitle;
+    const heard = document.createElement("p");
+    heard.className = "muted";
+    heard.textContent = text || "—";
+    const list = document.createElement("ul");
+    list.className = "entries";
+
+    fields.forEach((field) => {
+      const li = document.createElement("li");
+      const name = document.createElement("strong");
+      name.textContent = fieldName(field) + ": ";
+      li.appendChild(name);
+      let shown;
+      if (filled.has(field)) shown = filled.get(field);
+      else if (unclear.has(field)) shown = "? " + (unclear.get(field) || t.previewMissing);
+      else shown = t.previewMissing;
+      li.appendChild(document.createTextNode(shown));
+      list.appendChild(li);
+    });
+
+    box.appendChild(title);
+    box.appendChild(heard);
+    box.appendChild(list);
+    box.hidden = false;
+  }
+
   // Dictate everything at once, then summarize, confirm, and ask only about what is missing.
   async function dictateAll() {
     const fields = collectFields();
     show(T().allListening);
     await say(T().allStart);
 
-    const text = await listenLong();
+    const text = await listenLong((heardSoFar) => renderPreview(heardSoFar, fields));
+    renderPreview(text, fields);
     if (!text) {
       await say(T().noneFilled);
       return finish();
@@ -659,16 +700,6 @@
   if (allBtn) allBtn.addEventListener("click", () => (running ? stopAll() : startAll()));
 
   // ----- Setup -----
-
-  if (langSelect) {
-    let saved = null;
-    try { saved = localStorage.getItem(LANG_KEY); } catch (err) { /* storage blocked */ }
-    if (saved && VOICE_STRINGS[saved]) langSelect.value = saved;
-    langSelect.addEventListener("change", () => {
-      try { localStorage.setItem(LANG_KEY, langSelect.value); } catch (err) { /* storage blocked */ }
-      renderGuide();
-    });
-  }
 
   if (!SR || !TTS) {
     if (btn) { btn.disabled = true; btn.title = T().needs; }

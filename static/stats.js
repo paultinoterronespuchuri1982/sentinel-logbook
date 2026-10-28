@@ -13,7 +13,8 @@
  */
 
 (function () {
-  const btn = document.getElementById("statsBtn");
+  // The statistics icon in the left sidebar is the only way to open this panel.
+  const btn = document.getElementById("sidebarStats");
   const section = document.getElementById("statsSection");
   const roadmapSection = document.getElementById("roadmapSection");
   const watchSection = document.getElementById("watchSection");
@@ -410,10 +411,6 @@
       render();
     }
   });
-
-  // The chart icon in the left sidebar opens the same panel.
-  const sidebarStats = document.getElementById("sidebarStats");
-  if (sidebarStats) sidebarStats.addEventListener("click", () => btn.click());
 
   btn.setAttribute("aria-pressed", "false");
 })();

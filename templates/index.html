@@ -29,9 +29,6 @@
 
   <!-- Left: icon navigation and logbook list. -->
   <aside class="sidebar" aria-label="Logbooks">
-    <div class="sidebar-logo" role="img" aria-label="Sentinel Log" title="Sentinel Log">
-      <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><path d="M16 3l10 4v8c0 6.5-4.3 11.6-10 14-5.7-2.4-10-7.5-10-14V7z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 17c2 2 4 2 6 0s4-2 6 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </div>
     <nav id="vesselPicker" class="sidebar-icons" aria-label="Vessels"></nav>
     <nav class="sidebar-icons" aria-label="Sections">
       <span id="sidebarLogbooks" class="icon-btn is-active" title="Logbooks"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 4h12l4 4v12H4z M8 10h8M8 14h8" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></span>
@@ -57,6 +54,10 @@
 
     <!-- Top bar: title, progress, and global controls. -->
     <header class="topbar">
+      <span class="brand" aria-label="Sentinel Log">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2.5l7.5 3v6.2c0 4.6-3.1 8.3-7.5 9.8-4.4-1.5-7.5-5.2-7.5-9.8V5.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12.5h7M12 8.5v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span class="brand-name">Sentinel<span>Log</span></span>
+      </span>
       <div class="crumbs">
         <span class="crumb-muted" id="vesselCrumb"></span>
         <span class="crumb-sep">/</span>
@@ -105,15 +106,6 @@
           <span data-i18n="Vessel">Vessel</span>
           <select id="vesselSelect" aria-label="Vessel"></select>
         </label>
-        <label class="control">
-          <span data-i18n="Voice language">Voice language</span>
-          <select id="voiceLang" aria-label="Voice language">
-            <option value="es-ES">Español</option>
-            <option value="pt-BR">Português</option>
-            <option value="en-US">English</option>
-          </select>
-        </label>
-        <button id="statsBtn" type="button" class="btn btn-ghost" aria-pressed="false" data-i18n="Statistics">Statistics</button>
         <button id="voiceAllBtn" type="button" class="btn btn-ghost" aria-pressed="false" data-i18n="Dictate all">Dictate all</button>
         <button id="voiceBtn" type="button" class="btn btn-ghost" aria-pressed="false" data-i18n="Voice assistant">Voice assistant</button>
         <button id="roadmapBtn" type="button" class="btn btn-ghost" aria-pressed="false" data-i18n="Roadmap">Roadmap</button>
@@ -137,6 +129,8 @@
 
         <!-- Roadmap: what is available, draft, planned or outside this software. Filled by static/roadmap.js. -->
         <section id="roadmapSection" class="card" aria-label="Roadmap" hidden></section>
+
+        <section id="dictationPreview" class="card dictation-preview" aria-live="polite" hidden></section>
 
         <!-- Voice guide: how to say each field. Filled by static/voice-assistant.js. -->
         <div id="voiceGuide" class="card voice-guide" aria-live="polite" hidden></div>
