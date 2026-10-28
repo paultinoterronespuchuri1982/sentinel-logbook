@@ -32,6 +32,7 @@ const PT = {
   "Theme": "Tema",
   "Accent color": "Cor de destaque",
   "Day": "Dia",
+  "Dusk": "Crepúsculo",
   "Night": "Noite",
   "Red night (night vision)": "Noite vermelha (visão noturna)",
   "Follow system": "Seguir o sistema",

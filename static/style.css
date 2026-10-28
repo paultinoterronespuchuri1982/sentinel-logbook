@@ -52,32 +52,60 @@
   --glass: rgba(255, 255, 255, 0.82);
 }
 
-/* ---------- Night ---------- */
-[data-theme="night"] {
-  --bg: #0a1120;
-  --surface: #111a2c;
-  --surface-2: #0d1627;
-  --border: #22314b;
-  --text: #e5ecf6;
-  --muted: #92a4bf;
+/* ---------- Dusk (warm dark, for the transition at dusk) ---------- */
+[data-theme="dusk"] {
+  --bg: #1b1917;
+  --surface: #232120;
+  --surface-2: #1e1c1a;
+  --border: #3a3430;
+  --text: #e8e0d3;
+  --muted: #a69c8e;
 
-  --side: #070d18;
-  --side-text: #a9b8cc;
-  --side-hover: rgba(255, 255, 255, 0.06);
+  --side: #141210;
+  --side-text: #cdc4b6;
+  --side-hover: rgba(255, 240, 220, 0.06);
 
-  --accent: color-mix(in srgb, var(--accent-base) 72%, #fff);
-  --accent-hover: color-mix(in srgb, var(--accent-base) 55%, #fff);
-  --accent-soft: color-mix(in srgb, var(--accent-base) 16%, transparent);
-  --on-accent: #06121c;
+  --accent: color-mix(in srgb, var(--accent-base) 74%, #fff);
+  --accent-hover: color-mix(in srgb, var(--accent-base) 58%, #fff);
+  --accent-soft: color-mix(in srgb, var(--accent-base) 14%, transparent);
+  --on-accent: #161311;
 
-  --ok: #34d399;
-  --ok-soft: #0d2a21;
-  --err: #f87171;
-  --err-soft: #3a1717;
+  --ok: #8fc79a;
+  --ok-soft: #1f2a22;
+  --err: #e8907f;
+  --err-soft: #3a2420;
 
   --shadow: none;
-  --focus: 0 0 0 3px color-mix(in srgb, var(--accent-base) 45%, transparent);
-  --glass: rgba(17, 26, 44, 0.8);
+  --focus: 0 0 0 3px color-mix(in srgb, var(--accent-base) 40%, transparent);
+  --glass: rgba(35, 33, 32, 0.85);
+}
+
+/* ---------- Night (neutral dark grey, lowest brightness) ---------- */
+[data-theme="night"] {
+  --bg: #0a0c0e;
+  --surface: #111417;
+  --surface-2: #0e1114;
+  --border: #22272e;
+  --text: #b7bdc5;
+  --muted: #7a828c;
+
+  --side: #07080a;
+  --side-text: #9aa2ac;
+  --side-hover: rgba(255, 255, 255, 0.05);
+
+  --accent: color-mix(in srgb, var(--accent-base) 58%, #9aa3ad);
+  --accent-hover: color-mix(in srgb, var(--accent-base) 45%, #b5bcc5);
+  --accent-soft: color-mix(in srgb, var(--accent-base) 12%, transparent);
+  --on-accent: #0a0c0e;
+
+  --ok: #6fae86;
+  --ok-soft: #121c16;
+  --err: #d07a70;
+  --err-soft: #2a1716;
+
+  --shadow: none;
+  --focus: 0 0 0 3px color-mix(in srgb, var(--accent-base) 35%, transparent);
+  --glass: rgba(17, 20, 23, 0.85);
 }
 
 /* ---------- Red night (night vision) ---------- */
