@@ -356,7 +356,16 @@
 
   // ----- Opening and closing -----
 
+  // The sidebar icon of the open view is highlighted: statistics or logbooks.
+  function setSidebar(statsOn) {
+    const sidebarStats = document.getElementById("sidebarStats");
+    const sidebarLogbooks = document.getElementById("sidebarLogbooks");
+    if (sidebarStats) sidebarStats.classList.toggle("is-active", statsOn);
+    if (sidebarLogbooks) sidebarLogbooks.classList.toggle("is-active", !statsOn);
+  }
+
   function open() {
+    setSidebar(true);
     roadmapSection.hidden = true;
     watchSection.hidden = true;
     logbookSection.hidden = true;
@@ -369,6 +378,7 @@
   // Closing from the button restores the logbook that was open.
   function close() {
     destroyCharts();
+    setSidebar(false);
     section.hidden = true;
     btn.setAttribute("aria-pressed", "false");
     const active = document.querySelector(".logbook-list li.is-active");
@@ -384,6 +394,7 @@
   sidebarItems.forEach((li) => {
     li.addEventListener("click", () => {
       destroyCharts();
+      setSidebar(false);
       section.hidden = true;
       btn.setAttribute("aria-pressed", "false");
     });
