@@ -42,6 +42,16 @@
   const CONNECTORS = ["y", "e", "and"];
   const DECIMAL_WORDS = ["punto", "coma", "virgula", "ponto", "point", "dot"];
 
+  // Nautical (ICAO) alphabet in Spanish, Portuguese and English, without accents.
+  // "alfa bravo charlie" spells "ABC". Used to spell names and codes letter by letter.
+  const NATO = {
+    alfa: "A", alpha: "A", bravo: "B", charlie: "C", delta: "D", eco: "E", echo: "E",
+    foxtrot: "F", golf: "G", hotel: "H", india: "I", juliett: "J", juliet: "J", juliete: "J",
+    kilo: "K", lima: "L", mike: "M", november: "N", oscar: "O", papa: "P", quebec: "Q",
+    romeo: "R", sierra: "S", tango: "T", uniforme: "U", uniform: "U", victor: "V",
+    whisky: "W", whiskey: "W", "x-ray": "X", yankee: "Y", zulu: "Z",
+  };
+
   const MONTHS = {
     enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6, julio: 7, agosto: 8,
     septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12,
@@ -210,12 +220,20 @@
     return v === null ? null : String(v);
   }
 
+  // Letters spelled with the nautical alphabet: "alfa bravo" -> "AB". Null if fewer than two words.
+  function spelledValue(text) {
+    const tokens = fold(text).replace(/x ray/g, "x-ray").split(" ").filter(Boolean);
+    const letters = tokens.filter((t) => NATO[t] !== undefined);
+    if (letters.length < 2) return null;
+    return letters.map((t) => NATO[t]).join("");
+  }
+
   // Returns the value for the field, or null if the answer does not fit it.
   function valueFor(input, answer) {
     if (input.type === "time") return parseTime(answer);
     if (input.type === "date") return parseDate(answer);
     if (input.type === "number") return parseNumber(answer);
-    return answer;
+    return spelledValue(answer) || answer;
   }
 
   // Command for an answer to a question: stop, next, repeat, or null.

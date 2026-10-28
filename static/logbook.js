@@ -57,7 +57,7 @@
   }
 
   function formatDate(ts) {
-    return new Date(ts).toLocaleString(currentLang === "pt" ? "pt-BR" : "en-US");
+    return new Date(ts).toLocaleString(currentLocale());
   }
 
   // ----- Sidebar and switching -----

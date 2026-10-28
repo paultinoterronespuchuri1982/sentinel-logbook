@@ -27,7 +27,7 @@ const Dictation = (function () {
 
   function whisperLang() {
     const select = document.getElementById("language");
-    return select && select.value === "pt" ? "pt" : "en";
+    return select && ["pt", "es"].includes(select.value) ? select.value : "en";
   }
 
   // Recording state for each field when using the server.
@@ -92,7 +92,8 @@ const Dictation = (function () {
 
   function langCode() {
     const select = document.getElementById("language");
-    return select && select.value === "pt" ? "pt-BR" : "en-US";
+    const codes = { pt: "pt-BR", es: "es-ES", en: "en-US" };
+    return codes[select ? select.value : "en"] || "en-US";
   }
 
   /** Join two pieces of text with one space between them. */

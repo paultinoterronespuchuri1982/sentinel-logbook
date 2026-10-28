@@ -75,6 +75,7 @@
           <select id="language" aria-label="Language">
             <option value="en">English</option>
             <option value="pt">Português</option>
+            <option value="es">Español</option>
           </select>
         </label>
 
@@ -100,6 +101,10 @@
           </select>
         </label>
 
+        <label class="control">
+          <span data-i18n="Vessel">Vessel</span>
+          <select id="vesselSelect" aria-label="Vessel"></select>
+        </label>
         <label class="control">
           <span data-i18n="Voice language">Voice language</span>
           <select id="voiceLang" aria-label="Voice language">
@@ -288,6 +293,7 @@
 </div>
 
 <!-- Loaded in order: translations and appearance first, then the pages. -->
+<script src="/static/i18n-es.js"></script>
 <script src="/static/i18n.js"></script>
 <script src="/static/vessel.js"></script>
 <script src="/static/theme.js"></script>

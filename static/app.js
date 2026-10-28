@@ -158,7 +158,7 @@ function refreshReport() {
   if (!lastReport) return;
   renderReport(lastReport);
   if (lastMeta) {
-    const when = new Date(lastMeta.generated_at).toLocaleString(currentLang === "pt" ? "pt-BR" : "en-US");
+    const when = new Date(lastMeta.generated_at).toLocaleString(currentLocale());
     setStatus(tr("Report generated for ") + lastMeta.vessel_name + tr(" at ") + when, "ok");
   }
 }

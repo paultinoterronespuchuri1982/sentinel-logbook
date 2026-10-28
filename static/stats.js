@@ -67,7 +67,7 @@
     return diff < 0 ? diff + 1440 : diff;
   }
 
-  function locale() { return currentLang === "pt" ? "pt-BR" : "en-US"; }
+  function locale() { return currentLocale(); }
 
   function shortDate(d) {
     return d.toLocaleDateString(locale(), { day: "2-digit", month: "2-digit" });

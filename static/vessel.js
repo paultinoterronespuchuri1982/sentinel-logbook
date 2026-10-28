@@ -59,6 +59,20 @@ const Vessel = (function () {
     const crumb = document.getElementById("vesselCrumb");
     if (crumb) crumb.textContent = current().name;
 
+    // Dropdown in the top bar with the vessel names.
+    const dropdown = document.getElementById("vesselSelect");
+    if (dropdown) {
+      dropdown.innerHTML = "";
+      LIST.forEach((v) => {
+        const option = document.createElement("option");
+        option.value = v.id;
+        option.textContent = v.name;
+        option.selected = v.id === currentId();
+        dropdown.appendChild(option);
+      });
+      dropdown.addEventListener("change", () => select(dropdown.value));
+    }
+
     const picker = document.getElementById("vesselPicker");
     if (!picker) return;
     picker.innerHTML = "";

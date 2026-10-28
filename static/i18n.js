@@ -38,6 +38,7 @@ const PT = {
 
   // ----- Voice and charts (added with the fuel field and confirmation) -----
   "Voice language": "Idioma da voz",
+  "Vessel": "Navio",
   "Heard: ": "Escutado: ",
   "Say yes to confirm, or say the correct value.": "Diga sim para confirmar, ou diga o valor correto.",
   "Fuel oil quantity (tons)": "Quantidade de óleo combustível (toneladas)",
@@ -334,12 +335,22 @@ const PT = {
   "Port calls and voyage notes": "Escalas em porto e notas da viagem",
 };
 
-/** Current language: "en" or "pt". */
+/** Current language: "en", "pt" or "es". */
 let currentLang = "en";
+
+/** Supported interface languages and their dictionaries (English is the key). */
+const LANGS = ["en", "pt", "es"];
+const DICTS = { pt: PT, es: ES };
+
+/** Locale used for dates and numbers in the current language. */
+function currentLocale() {
+  return { pt: "pt-BR", es: "es-ES", en: "en-US" }[currentLang];
+}
 
 /** Return the text in the current language. Unknown text is returned as is. */
 function tr(text) {
-  if (currentLang === "pt" && PT[text] !== undefined) return PT[text];
+  const dict = DICTS[currentLang];
+  if (dict && dict[text] !== undefined) return dict[text];
   return text;
 }
 
@@ -358,7 +369,7 @@ function applyI18n(root) {
   scope.querySelectorAll("[data-i18n-aria]").forEach((el) => {
     el.setAttribute("aria-label", tr(el.dataset.i18nAria));
   });
-  document.documentElement.lang = currentLang === "pt" ? "pt-BR" : "en";
+  document.documentElement.lang = currentLocale();
 }
 
 /**
@@ -368,7 +379,7 @@ function applyI18n(root) {
  * @param {"en"|"pt"} code
  */
 function setLanguage(code) {
-  currentLang = code === "pt" ? "pt" : "en";
+  currentLang = LANGS.includes(code) ? code : "en";
   try { localStorage.setItem("lang", currentLang); } catch (err) { /* storage blocked */ }
   applyI18n();
   document.dispatchEvent(new Event("langchange"));
@@ -378,8 +389,9 @@ function setLanguage(code) {
 (function initLanguage() {
   let saved = null;
   try { saved = localStorage.getItem("lang"); } catch (err) { /* storage blocked */ }
-  const browserPt = (navigator.language || "").toLowerCase().startsWith("pt");
-  currentLang = saved === "pt" || saved === "en" ? saved : (browserPt ? "pt" : "en");
+  // Without a saved choice, use the browser language when it is supported.
+  const browser = (navigator.language || "").toLowerCase().slice(0, 2);
+  currentLang = LANGS.includes(saved) ? saved : (LANGS.includes(browser) ? browser : "en");
 
   const select = document.getElementById("language");
   if (select) {
