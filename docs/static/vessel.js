@@ -1,16 +1,16 @@
 /**
- * Vessel selector: five vessels, Bravante 1 to Bravante 5.
+ * Vessel selector. The app is set up for one vessel: Sentinel 1.
  *
  * Each vessel has its own records, drafts and reminder marks on this device.
  * Storage keys start with the vessel id, for example "v1/logbook:deck".
  * Changing vessel reloads the page, so every part reads the new vessel's data.
- * Records saved before vessels existed are moved to Bravante 1 once.
+ * Records saved before vessels existed are moved to vessel v1 once.
  *
  * Loaded before logbook.js, draft.js and stats.js, which call Vessel.key().
  */
 
 const Vessel = (function () {
-  const LIST = [1, 2, 3, 4, 5].map((n) => ({ id: "v" + n, name: "Bravante " + n }));
+  const LIST = [{ id: "v1", name: "Sentinel 1" }];
   const STORE = "vessel";
   const MIGRATED = "vessel:migrated";
 
@@ -37,7 +37,7 @@ const Vessel = (function () {
     location.reload();
   }
 
-  // One-time move of records saved before vessels existed, into Bravante 1.
+  // One-time move of records saved before vessels existed, into vessel v1.
   function migrate() {
     try {
       if (localStorage.getItem(MIGRATED)) return;
