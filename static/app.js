@@ -221,3 +221,57 @@ form.addEventListener("submit", async (e) => {
     generateBtn.disabled = false;
   }
 });
+
+/* ---------- Progress meter (like the "Completed %" checklist bar) ---------- */
+
+const progressBar = document.getElementById("progressBar");   // Fill of the progress bar
+const progressText = document.getElementById("progressText"); // Percentage text
+
+/**
+ * Update the progress bar from the required fields. A required field counts
+ * as complete when it has a non-empty value.
+ */
+function updateProgress() {
+  const required = form.querySelectorAll("[required]");
+  const filled = Array.from(required).filter((el) => el.value.trim() !== "").length;
+  const percent = required.length ? Math.round((filled / required.length) * 100) : 0;
+  progressBar.style.width = percent + "%";
+  progressText.textContent = percent + "%";
+}
+
+// Recalculate while the user types, and after a sample is loaded.
+form.addEventListener("input", updateProgress);
+loadSampleBtn.addEventListener("click", () => setTimeout(updateProgress, 0));
+updateProgress();
+
+/* ---------- Dark screen mode ---------- */
+
+const themeBtn = document.getElementById("themeToggle");
+
+/**
+ * Apply a theme by setting data-theme on <html>.
+ * "dark" forces dark mode; "system" follows the operating system.
+ *
+ * @param {"dark"|"system"} theme
+ */
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  themeBtn.textContent = theme === "dark" ? "Light screen" : "Dark screen";
+  try {
+    localStorage.setItem("theme", theme);
+  } catch (err) {
+    // Storage can be blocked (private mode). The theme still applies for this page.
+  }
+}
+
+themeBtn.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme");
+  applyTheme(current === "dark" ? "system" : "dark");
+});
+
+// Restore the saved choice when the page loads.
+try {
+  applyTheme(localStorage.getItem("theme") === "dark" ? "dark" : "system");
+} catch (err) {
+  applyTheme("system");
+}
