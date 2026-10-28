@@ -1,19 +1,25 @@
 /**
- * Voice assistant: one microphone for the form that is on screen.
+ * Voice assistant for the form on screen.
  *
- * - Reads each empty field aloud, listens to the answer, writes it into the
- *   field and reads the value back. The user confirms ("sí"), rejects ("está
- *   mal", "no") so the field is cleared and asked again, or says a corrected value.
- * - Commands: stop / parar / terminar, next / siguiente / próximo, repeat / repetir.
- * - Dates, times and numbers can be said in words or digits (Spanish,
- *   Portuguese and English). Example: "veintiocho de octubre de dos mil veintiséis".
- * - Voice language is chosen with the selector in the top bar.
- * - Uses the browser's speech recognition and speech synthesis (Chrome, Edge
- *   or Safari). Sound goes to the device's current output, so a Bluetooth
- *   headset is used automatically.
+ * Two ways to fill a form by voice:
+ *   1. "Voice assistant" (guided): reads each empty field aloud, writes the
+ *      answer, reads it back and asks for confirmation.
+ *   2. "Dictate all": the user says everything in one go, with each field's
+ *      name before its value. The words for each field split the speech into
+ *      parts, and each part is written into its field. Then the assistant reads
+ *      a summary, asks for confirmation, and asks only about what is missing.
  *
- * Texts are in static/voice-strings.js. Depends on Vessel-free storage only
- * through the form fields; it does not store anything itself.
+ * Other behavior:
+ *   - Commands: stop / parar / detener / terminar, next / siguiente / próximo,
+ *     repeat / repetir. Rejections: "no", "está mal", "errado", "incorrecto".
+ *   - Dates, times and numbers can be said in words or digits (es, pt, en).
+ *   - The nautical alphabet spells names: "alfa bravo" -> "AB".
+ *   - A guide card above the form shows how to say each field.
+ *   - Uses the browser's speech recognition and speech synthesis (Chrome, Edge
+ *     or Safari). Sound goes to the device's current output, so a Bluetooth
+ *     headset is used automatically.
+ *
+ * Texts are in static/voice-strings.js. Button labels use tr() (static/i18n.js).
  */
 
 (function () {
@@ -21,7 +27,9 @@
   const TTS = window.speechSynthesis;
 
   const btn = document.getElementById("voiceBtn");
+  const allBtn = document.getElementById("voiceAllBtn");
   const langSelect = document.getElementById("voiceLang");
+  const guideBox = document.getElementById("voiceGuide");
   const watchSection = document.getElementById("watchSection");
   const logbookSection = document.getElementById("logbookSection");
   const watchMessage = document.getElementById("watchMessage");
@@ -31,8 +39,8 @@
   const DEFAULT_LANG = "es-ES";
   const MAX_SILENT = 3;
 
-  // Words are compared without accents and in lower case (see fold()).
-  const STOP_WORDS = ["stop", "parar", "pare", "terminar", "terminei", "termine", "finalizar", "fin", "finish", "detener"];
+  // Commands. Words are compared without accents and in lower case (see fold()).
+  const STOP_WORDS = ["stop", "parar", "pare", "detener", "terminar", "terminei", "termine", "finalizar", "fin", "finish"];
   const SKIP_WORDS = ["next", "skip", "siguiente", "proximo", "pular", "pule", "saltar", "pasar", "seguinte"];
   const REPEAT_WORDS = ["repeat", "repetir", "repita", "repite", "repete", "de nuevo", "otra vez", "vuelva a decir"];
   const NO_WORDS = ["no", "nao", "mal", "equivocado", "equivocada", "incorrecto", "incorrecta", "incorreto", "errado", "errada", "error", "wrong"];
@@ -41,16 +49,8 @@
   const FILLER = ["de", "of", "do", "da", "del", "the"];
   const CONNECTORS = ["y", "e", "and"];
   const DECIMAL_WORDS = ["punto", "coma", "virgula", "ponto", "point", "dot"];
-
-  // Nautical (ICAO) alphabet in Spanish, Portuguese and English, without accents.
-  // "alfa bravo charlie" spells "ABC". Used to spell names and codes letter by letter.
-  const NATO = {
-    alfa: "A", alpha: "A", bravo: "B", charlie: "C", delta: "D", eco: "E", echo: "E",
-    foxtrot: "F", golf: "G", hotel: "H", india: "I", juliett: "J", juliet: "J", juliete: "J",
-    kilo: "K", lima: "L", mike: "M", november: "N", oscar: "O", papa: "P", quebec: "Q",
-    romeo: "R", sierra: "S", tango: "T", uniforme: "U", uniform: "U", victor: "V",
-    whisky: "W", whiskey: "W", "x-ray": "X", yankee: "Y", zulu: "Z",
-  };
+  // Words that may come right after a field name ("fecha es hoy") and are not part of the value.
+  const LEAD_WORDS = ["es", "son", "igual", "fue"];
 
   const MONTHS = {
     enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6, julio: 7, agosto: 8,
@@ -101,6 +101,20 @@
     return n;
   })();
 
+  // Nautical (ICAO) alphabet in Spanish, Portuguese and English, without accents.
+  const NATO = {
+    alfa: "A", alpha: "A", bravo: "B", charlie: "C", delta: "D", eco: "E", echo: "E",
+    foxtrot: "F", golf: "G", hotel: "H", india: "I", juliett: "J", juliet: "J", juliete: "J",
+    kilo: "K", lima: "L", mike: "M", november: "N", oscar: "O", papa: "P", quebec: "Q",
+    romeo: "R", sierra: "S", tango: "T", uniforme: "U", uniform: "U", victor: "V",
+    whisky: "W", whiskey: "W", "x-ray": "X", yankee: "Y", zulu: "Z",
+  };
+
+  let running = false;
+  let recognition = null;
+
+  // ----- Text helpers -----
+
   // Lower case, no accents, single spaces. "sí" becomes "si", "não" becomes "nao".
   function fold(text) {
     return String(text).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
@@ -113,7 +127,7 @@
 
   function pad(n) { return String(n).padStart(2, "0"); }
 
-  // Value of a list of words or digits: "dos mil veintiseis" -> 2026, "veintiocho" -> 28.
+  // Value of words or digits: "dos mil veintiseis" -> 2026, "veintiocho" -> 28.
   function wordsValue(tokens) {
     let value = 0;
     let chunk = 0;
@@ -130,6 +144,8 @@
     if (h === null || m === null || h > 23 || m > 59) return null;
     return pad(h) + ":" + pad(m);
   }
+
+  // ----- Parsers for each field type -----
 
   function parseTime(text) {
     const f = fold(text)
@@ -255,7 +271,7 @@
     return "value";
   }
 
-  // ----- Language -----
+  // ----- Language and text -----
 
   function voiceLang() {
     const v = langSelect ? langSelect.value : DEFAULT_LANG;
@@ -302,7 +318,8 @@
       if (!input.id || input.id === "equipment_status") return; // JSON field: type it
       if (input.type === "hidden" || input.disabled) return;
       const labelEl = section.querySelector('label[for="' + input.id + '"]');
-      const label = labelEl ? labelEl.textContent.replace(/\s*\*\s*$/, "").trim() : input.id;
+      // Labels such as "Fuel oil quantity (tons)" are spoken without the unit.
+      const label = labelEl ? labelEl.textContent.replace(/\(.*?\)/g, "").replace(/\*/g, "").trim() : input.id;
       fields.push({ input: input, label: label });
     });
     return fields;
@@ -312,6 +329,37 @@
   function setValue(input, value) {
     input.value = value;
     input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  // ----- The guide card above the form -----
+
+  function exampleType(input) {
+    if (input.type === "time") return "time";
+    if (input.type === "date") return "date";
+    if (input.type === "number") return "number";
+    return "text";
+  }
+
+  function renderGuide() {
+    if (!guideBox) return;
+    guideBox.innerHTML = "";
+    const fields = collectFields();
+    if (!fields.length) { guideBox.hidden = true; return; }
+
+    const t = T();
+    const ex = EXAMPLES[voiceLang()];
+    const title = document.createElement("strong");
+    title.textContent = t.guideTitle;
+    const lead = document.createElement("p");
+    lead.className = "hint";
+    lead.textContent = t.guideLead;
+    const example = document.createElement("p");
+    example.className = "muted";
+    example.textContent = fields.map((f) => fieldName(f) + ": " + ex[exampleType(f.input)]).join(". ") + ".";
+    guideBox.appendChild(title);
+    guideBox.appendChild(lead);
+    guideBox.appendChild(example);
+    guideBox.hidden = false;
   }
 
   // ----- Speaking and listening -----
@@ -328,32 +376,112 @@
     });
   }
 
-  // Listen for one spoken answer. Resolves with the text, or null if nothing was heard.
+  function newRecognition(continuous) {
+    const r = new SR();
+    r.lang = voiceLang();
+    r.continuous = continuous;
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    recognition = r;
+    return r;
+  }
+
+  // One spoken answer. Resolves with the text, or null if nothing was heard.
   function listen() {
     return new Promise((resolve) => {
       let finished = false;
       const done = (value) => { if (!finished) { finished = true; resolve(value); } };
-
-      const r = new SR();
-      r.lang = voiceLang();
-      r.continuous = false;
-      r.interimResults = false;
-      r.maxAlternatives = 1;
+      const r = newRecognition(false);
       r.onresult = (event) => done(event.results[0][0].transcript.trim());
       r.onerror = () => done(null);
       r.onend = () => done(null);
-      recognition = r;
       try { r.start(); } catch (err) { done(null); }
     });
   }
 
-  let recognition = null;
+  // A long dictation: keeps listening until stop() is called. Resolves with all the text heard.
+  function listenLong() {
+    return new Promise((resolve) => {
+      let text = "";
+      const r = newRecognition(true);
+      r.onresult = (event) => {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) text += " " + event.results[i][0].transcript;
+        }
+        show(T().heard + text.trim());
+      };
+      r.onerror = () => {};
+      r.onend = () => resolve(text.trim());
+      try { r.start(); } catch (err) { resolve(""); }
+    });
+  }
 
-  // ----- The conversation -----
+  // ----- Dictating everything: split the speech by field names -----
 
-  async function run() {
-    const todo = collectFields().filter((f) => !f.input.value.trim());
-    if (!todo.length) {
+  // Words that name each field, in the three languages, plus the label on the page.
+  function keywordsFor(field) {
+    const words = [field.label].concat(FIELD_ALIASES[field.input.id] || []);
+    if (FIELD_NAMES_ES[field.input.id]) words.push(FIELD_NAMES_ES[field.input.id]);
+    return words.map((w) => fold(w)).filter((w, i, all) => w && all.indexOf(w) === i);
+  }
+
+  // Reads a long sentence and returns what goes in each field:
+  //   filled:  [{ field, value }] values that were understood
+  //   missing: fields whose name was not said
+  //   unclear: [{ field, text }] names said, but the value did not fit the field
+  function fillFromSpeech(text, fields) {
+    const tokens = text.trim().split(/\s+/).filter(Boolean);
+    const folded = tokens.map((t) => fold(t).replace(/^[:;,.]+|[:;,.!?]+$/g, ""));
+
+    // Every keyword, longest first, so "hora de inicio" wins over "inicio".
+    const entries = [];
+    fields.forEach((field) => {
+      keywordsFor(field).forEach((k) => entries.push({ field: field, words: k.split(" ") }));
+    });
+    entries.sort((a, b) => b.words.length - a.words.length);
+
+    // Find where each field name starts in the speech.
+    const marks = [];
+    for (let i = 0; i < folded.length;) {
+      const hit = entries.find((e) => {
+        if (i + e.words.length > folded.length) return false;
+        return e.words.every((w, j) => folded[i + j] === w);
+      });
+      if (hit) {
+        marks.push({ start: i, end: i + hit.words.length, field: hit.field });
+        i += hit.words.length;
+      } else {
+        i++;
+      }
+    }
+
+    const filled = [];
+    const unclear = [];
+    const seen = new Set();
+
+    marks.forEach((mark, index) => {
+      if (seen.has(mark.field)) return; // a field named twice: keep the first
+      seen.add(mark.field);
+
+      const stop = index + 1 < marks.length ? marks[index + 1].start : tokens.length;
+      let part = tokens.slice(mark.end, stop);
+      while (part.length && LEAD_WORDS.includes(fold(part[0]))) part = part.slice(1);
+      const raw = part.join(" ").replace(/^[:;,.\s]+/, "").trim();
+
+      const value = raw ? valueFor(mark.field.input, raw) : null;
+      if (value !== null && value !== "") filled.push({ field: mark.field, value: value });
+      else unclear.push({ field: mark.field, text: raw });
+    });
+
+    const missing = fields.filter((f) => !seen.has(f));
+    return { filled: filled, missing: missing, unclear: unclear };
+  }
+
+  // ----- Guided questions -----
+
+  // Asks each field in the list, reads the value back, and asks for confirmation.
+  async function run(list) {
+    if (!list.length) {
       show(T().allFilled, "ok");
       await say(T().allFilled);
       return finish();
@@ -367,8 +495,8 @@
     // A value heard and read back, waiting for confirmation.
     let candidate = null;
 
-    while (running && i < todo.length) {
-      const field = todo[i];
+    while (running && i < list.length) {
+      const field = list[i];
 
       if (candidate === null) {
         field.input.focus();
@@ -434,11 +562,54 @@
     finish();
   }
 
+  // Dictate everything at once, then summarize, confirm, and ask only about what is missing.
+  async function dictateAll() {
+    const fields = collectFields();
+    show(T().allListening);
+    await say(T().allStart);
+
+    const text = await listenLong();
+    if (!text) {
+      await say(T().noneFilled);
+      return finish();
+    }
+    show(T().heard + text);
+
+    const result = fillFromSpeech(text, fields);
+    result.filled.forEach((item) => setValue(item.field.input, item.value));
+
+    if (!result.filled.length) {
+      await say(T().noneFilled);
+      return finish();
+    }
+
+    await say(T().summary.replace("{count}", String(result.filled.length)));
+    if (!running) return finish();
+
+    // Fields not said, or said with an unclear value, are asked one by one.
+    const ask = result.missing.concat(result.unclear.map((u) => u.field));
+    if (ask.length) {
+      result.unclear.forEach((u) => setValue(u.field.input, ""));
+      return run(ask);
+    }
+
+    // Everything was understood: confirm once.
+    const reply = await listen();
+    if (!running) return finish();
+    const kind = reply ? classify(reply) : "yes";
+    if (kind === "no") return run(result.filled.map((item) => item.field));
+
+    await say(T().allOk);
+    finish();
+  }
+
+  // ----- Starting and stopping -----
+
   function stopEverything() {
     running = false;
-    if (recognition) { try { recognition.abort(); } catch (err) { /* already stopped */ } }
+    if (recognition) { try { recognition.stop(); } catch (err) { /* already stopped */ } }
     if (TTS) TTS.cancel();
-    setButton(false);
+    setButtons(false);
   }
 
   function finish() {
@@ -446,30 +617,48 @@
     show(T().finished);
   }
 
-  let running = false;
-
-  function start() {
-    if (!SR || !TTS) {
-      show(T().needs, "err");
-      return;
-    }
-    running = true;
-    setButton(true);
-    run();
+  function supported() {
+    if (SR && TTS) return true;
+    show(T().needs, "err");
+    return false;
   }
 
-  function stop() {
+  function startGuided() {
+    if (!supported()) return;
+    running = true;
+    setButtons(true);
+    run(collectFields().filter((f) => !f.input.value.trim()));
+  }
+
+  function startAll() {
+    if (!supported()) return;
+    running = true;
+    setButtons(true);
+    dictateAll();
+  }
+
+  function stopAll() {
     stopEverything();
     show(T().stopped);
   }
 
-  function setButton(on) {
-    btn.classList.toggle("is-listening", on);
-    btn.setAttribute("aria-pressed", on ? "true" : "false");
-    btn.textContent = on ? tr("Stop assistant") : tr("Voice assistant");
+  function setButtons(on) {
+    if (btn) {
+      btn.classList.toggle("is-listening", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.textContent = on ? tr("Stop assistant") : tr("Voice assistant");
+    }
+    if (allBtn) {
+      allBtn.classList.toggle("is-listening", on);
+      allBtn.setAttribute("aria-pressed", on ? "true" : "false");
+      allBtn.textContent = tr("Dictate all");
+    }
   }
 
-  btn.addEventListener("click", () => (running ? stop() : start()));
+  if (btn) btn.addEventListener("click", () => (running ? stopAll() : startGuided()));
+  if (allBtn) allBtn.addEventListener("click", () => (running ? stopAll() : startAll()));
+
+  // ----- Setup -----
 
   if (langSelect) {
     let saved = null;
@@ -477,15 +666,22 @@
     if (saved && VOICE_STRINGS[saved]) langSelect.value = saved;
     langSelect.addEventListener("change", () => {
       try { localStorage.setItem(LANG_KEY, langSelect.value); } catch (err) { /* storage blocked */ }
+      renderGuide();
     });
   }
 
   if (!SR || !TTS) {
-    btn.disabled = true;
-    btn.title = T().needs;
+    if (btn) { btn.disabled = true; btn.title = T().needs; }
+    if (allBtn) { allBtn.disabled = true; allBtn.title = T().needs; }
   }
 
-  // Re-translate the button label when the interface language changes.
-  document.addEventListener("langchange", () => setButton(running));
-  setButton(false);
+  // The guide follows the open logbook, the language and the voice language.
+  const watchObserver = new MutationObserver(renderGuide);
+  [watchSection, logbookSection].forEach((el) => {
+    if (el) watchObserver.observe(el, { attributes: true, attributeFilter: ["hidden"] });
+  });
+  document.addEventListener("langchange", () => { setButtons(running); renderGuide(); });
+
+  setButtons(false);
+  renderGuide();
 })();

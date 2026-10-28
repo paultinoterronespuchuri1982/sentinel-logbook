@@ -8,6 +8,7 @@ const ES = {
   "Logbooks": "Diarios de a bordo",
 
   "Vessel": "Buque",
+  "Dictate all": "Dictar todo",
 
   // ----- Voice assistant -----
   "Voice assistant": "Asistente de voz",

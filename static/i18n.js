@@ -39,6 +39,7 @@ const PT = {
   // ----- Voice and charts (added with the fuel field and confirmation) -----
   "Voice language": "Idioma da voz",
   "Vessel": "Navio",
+  "Dictate all": "Ditar tudo",
   "Heard: ": "Escutado: ",
   "Say yes to confirm, or say the correct value.": "Diga sim para confirmar, ou diga o valor correto.",
   "Fuel oil quantity (tons)": "Quantidade de óleo combustível (toneladas)",
