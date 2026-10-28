@@ -29,7 +29,7 @@
   let current = "deck";
 
   // ----- Storage helpers (per device) -----
-  function entriesKey(id) { return "logbook:" + id; }
+  function entriesKey(id) { return Vessel.key("logbook:" + id); }
 
   function loadEntries(id) {
     try { return JSON.parse(localStorage.getItem(entriesKey(id)) || "[]"); }
@@ -42,11 +42,11 @@
   }
 
   function markDone(id, reminderId, ts) {
-    try { localStorage.setItem("done:" + id + ":" + reminderId, String(ts)); } catch (err) { /* storage blocked */ }
+    try { localStorage.setItem(Vessel.key("done:" + id + ":" + reminderId), String(ts)); } catch (err) { /* storage blocked */ }
   }
 
   function lastDone(id, reminderId) {
-    const value = localStorage.getItem("done:" + id + ":" + reminderId);
+    const value = localStorage.getItem(Vessel.key("done:" + id + ":" + reminderId));
     return value ? Number(value) : null;
   }
 

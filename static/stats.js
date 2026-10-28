@@ -35,12 +35,12 @@
   // ----- Reading the data -----
 
   function loadEntries(id) {
-    try { return JSON.parse(localStorage.getItem("logbook:" + id) || "[]"); }
+    try { return JSON.parse(localStorage.getItem(Vessel.key("logbook:" + id)) || "[]"); }
     catch (err) { return []; }
   }
 
   function lastDone(id, reminderId) {
-    const value = localStorage.getItem("done:" + id + ":" + reminderId);
+    const value = localStorage.getItem(Vessel.key("done:" + id + ":" + reminderId));
     return value ? Number(value) : null;
   }
 
@@ -399,6 +399,10 @@
       render();
     }
   });
+
+  // The chart icon in the left sidebar opens the same panel.
+  const sidebarStats = document.getElementById("sidebarStats");
+  if (sidebarStats) sidebarStats.addEventListener("click", () => btn.click());
 
   btn.setAttribute("aria-pressed", "false");
 })();

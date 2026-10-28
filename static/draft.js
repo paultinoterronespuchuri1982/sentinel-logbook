@@ -15,8 +15,9 @@
   const saveBtn = document.getElementById("saveWatch");
   const messageEl = document.getElementById("watchMessage");
 
-  const DRAFT_KEY = "draft:deck";
-  const ENTRIES_KEY = "logbook:deck";
+  // Keys are per vessel (static/vessel.js).
+  const DRAFT_KEY = Vessel.key("draft:deck");
+  const ENTRIES_KEY = Vessel.key("logbook:deck");
 
   function showMessage(text, kind) {
     messageEl.textContent = text;
@@ -64,6 +65,10 @@
     }
   } catch (err) { /* ignore a damaged draft */ }
 
+  // A new draft starts with the selected vessel's name.
+  const vesselField = document.getElementById("vessel_name");
+  if (vesselField && !vesselField.value) vesselField.value = Vessel.name();
+
   // Save the record as a dated entry.
   saveBtn.addEventListener("click", () => {
     if (!form.reportValidity()) return;
@@ -76,7 +81,7 @@
 
     try {
       localStorage.setItem(ENTRIES_KEY, JSON.stringify(list));
-      localStorage.setItem("done:deck:watch-end", String(ts));
+      localStorage.setItem(Vessel.key("done:deck:watch-end"), String(ts));
     } catch (err) {
       showMessage(tr("This browser blocked storage, so the entry was not saved."), "err");
       return;
