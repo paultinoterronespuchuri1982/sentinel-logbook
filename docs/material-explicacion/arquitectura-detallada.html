@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cómo funciona la tecnología: generador de reportes</title>
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: #cbd5e1;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --blue: #0ea5e9;
+    --violet: #6366f1;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1500px; margin: 0 auto; padding: 48px 32px 80px; }
+  h1 { font-size: 40px; margin: 0 0 10px; }
+  h2 { font-size: 28px; margin: 56px 0 14px; }
+  .lead { font-size: 19px; color: var(--muted); margin: 0 0 28px; max-width: 980px; }
+  .diagram { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  .caption { font-size: 15px; color: var(--muted); margin-top: 12px; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 18px; }
+  .step {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 8px solid var(--c, var(--blue));
+    border-radius: 14px;
+    padding: 20px 22px;
+  }
+  .step .tag { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--c, var(--blue)); margin-bottom: 6px; }
+  .step h3 { font-size: 20px; margin: 0 0 10px; }
+  .step p { margin: 0 0 10px; font-size: 16px; color: var(--muted); }
+  .step p strong { color: var(--ink); }
+  .step .tech { font-size: 14px; background: #f1f5f9; border-radius: 8px; padding: 8px 10px; color: var(--ink); margin: 0 0 10px; }
+  .step .analogy { font-size: 15px; font-style: italic; color: var(--muted); margin: 0; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 16px; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: #f1f5f9; font-size: 15px; }
+  td:first-child { font-weight: 700; white-space: nowrap; color: var(--ink); }
+  td { color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; }
+  .box h3 { font-size: 20px; margin: 0 0 10px; }
+  .box ul { margin: 0; padding-left: 20px; }
+  .box li { font-size: 16px; color: var(--muted); margin-bottom: 8px; }
+  .box li strong { color: var(--ink); }
+  .warn { margin-top: 18px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 16px 20px; font-size: 16px; color: #7f1d1d; }
+  @media (max-width: 900px) {
+    .two { grid-template-columns: 1fr; }
+    h1 { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Cómo funciona la tecnología del generador de reportes</h1>
+  <p class="lead">Sigue el camino de un reporte, desde que el operador pulsa un botón hasta que aparece en pantalla. Cada parte del dibujo tiene su nombre técnico y una comparación con un restaurante.</p>
+
+  <section class="diagram">
+    <svg viewBox="0 0 1600 760" role="img" aria-label="Diagrama de arquitectura: navegador, servidor y Anthropic">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#0f172a"/>
+        </marker>
+      </defs>
+
+      <rect x="30" y="20" width="400" height="66" rx="14" fill="#fff" stroke="#0f172a" stroke-width="2"/>
+      <text x="50" y="46" font-size="18" font-weight="700" fill="#0f172a">Paso 1 · Operador escribe el turno</text>
+      <text x="50" y="68" font-size="14" fill="#475569">Llena el formulario y pulsa “Generate”</text>
+
+      <rect x="30" y="110" width="400" height="560" rx="18" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
+      <text x="50" y="146" font-size="20" font-weight="700" fill="#0c4a6e">TU NAVEGADOR</text>
+      <text x="50" y="168" font-size="14" fill="#0c4a6e">Chrome, Edge o Safari: muestra la página</text>
+
+      <rect x="60" y="190" width="340" height="110" rx="12" fill="#fff" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="76" y="220" font-size="17" font-weight="700" fill="#0f172a">index.html</text>
+      <text x="76" y="244" font-size="14" fill="#475569">Formulario y área del reporte</text>
+      <text x="76" y="266" font-size="14" fill="#475569">(lo que se ve en pantalla)</text>
+
+      <rect x="60" y="330" width="340" height="110" rx="12" fill="#fff" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="76" y="360" font-size="17" font-weight="700" fill="#0f172a">app.js · Paso 2 y 9</text>
+      <text x="76" y="384" font-size="14" fill="#475569">Revisa, envía y muestra</text>
+      <text x="76" y="406" font-size="14" fill="#475569">el reporte (JavaScript)</text>
+
+      <rect x="60" y="470" width="340" height="70" rx="12" fill="#fff" stroke="#0ea5e9" stroke-width="1.5"/>
+      <text x="76" y="500" font-size="17" font-weight="700" fill="#0f172a">style.css</text>
+      <text x="76" y="522" font-size="14" fill="#475569">La apariencia: colores y diseño</text>
+
+      <text x="50" y="612" font-size="14" fill="#0c4a6e">Estos archivos llegan al navegador</text>
+      <text x="50" y="632" font-size="14" fill="#0c4a6e">cuando se abre la página.</text>
+
+      <rect x="520" y="110" width="560" height="560" rx="18" fill="#ede9fe" stroke="#6366f1" stroke-width="2"/>
+      <text x="540" y="146" font-size="20" font-weight="700" fill="#312e81">NUESTRO SERVIDOR</text>
+      <text x="540" y="168" font-size="14" fill="#312e81">main.py con FastAPI: recibe, revisa y coordina</text>
+
+      <rect x="550" y="190" width="500" height="60" rx="12" fill="#fff" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="566" y="214" font-size="17" font-weight="700" fill="#0f172a">Paso 3 · Puerta de entrada (ruta)</text>
+      <text x="566" y="236" font-size="14" fill="#475569">/api/generate-report recibe el pedido</text>
+
+      <rect x="550" y="270" width="500" height="60" rx="12" fill="#fff" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="566" y="294" font-size="17" font-weight="700" fill="#0f172a">Paso 4 · Revisor (Pydantic)</text>
+      <text x="566" y="316" font-size="14" fill="#475569">Revisa tipos y tamaños; si falta algo, rechaza (422)</text>
+
+      <rect x="550" y="350" width="500" height="60" rx="12" fill="#fff" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="566" y="374" font-size="17" font-weight="700" fill="#0f172a">Paso 5 · Armador del prompt</text>
+      <text x="566" y="396" font-size="14" fill="#475569">Une las reglas SOLAS/IMO con los datos del turno</text>
+
+      <rect x="550" y="430" width="500" height="60" rx="12" fill="#fff" stroke="#6366f1" stroke-width="1.5"/>
+      <text x="566" y="454" font-size="17" font-weight="700" fill="#0f172a">Paso 8 · Traductor (extract_json)</text>
+      <text x="566" y="476" font-size="14" fill="#475569">Convierte el texto de la IA en datos ordenados</text>
+
+      <rect x="550" y="520" width="240" height="70" rx="12" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="566" y="548" font-size="16" font-weight="700" fill="#0f172a">Cuaderno (logs)</text>
+      <text x="566" y="570" font-size="14" fill="#475569">Guarda detalles de errores</text>
+
+      <rect x="810" y="520" width="240" height="70" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
+      <text x="826" y="548" font-size="16" font-weight="700" fill="#0f172a">Paso 6 · Caja fuerte</text>
+      <text x="826" y="570" font-size="14" fill="#475569">Archivo .env: guarda la llave</text>
+
+      <rect x="1140" y="110" width="420" height="560" rx="18" fill="#dcfce7" stroke="#10b981" stroke-width="2"/>
+      <text x="1160" y="146" font-size="20" font-weight="700" fill="#064e3b">INTERNET Y ANTHROPIC</text>
+      <text x="1160" y="168" font-size="14" fill="#064e3b">Servicios en la nube, en otros servidores</text>
+
+      <rect x="1170" y="190" width="360" height="70" rx="12" fill="#fff" stroke="#10b981" stroke-width="1.5"/>
+      <text x="1186" y="216" font-size="17" font-weight="700" fill="#0f172a">Camino cifrado (HTTPS)</text>
+      <text x="1186" y="240" font-size="14" fill="#475569">Viaja protegido, como en un sobre sellado</text>
+
+      <rect x="1170" y="300" width="360" height="70" rx="12" fill="#fff" stroke="#10b981" stroke-width="1.5"/>
+      <text x="1186" y="326" font-size="17" font-weight="700" fill="#0f172a">Paso 6 · API de Anthropic</text>
+      <text x="1186" y="350" font-size="14" fill="#475569">La ventanilla que recibe el pedido de IA</text>
+
+      <rect x="1170" y="410" width="360" height="100" rx="12" fill="#fff" stroke="#10b981" stroke-width="1.5"/>
+      <text x="1186" y="438" font-size="17" font-weight="700" fill="#0f172a">Paso 7 · Modelo Claude</text>
+      <text x="1186" y="462" font-size="14" fill="#475569">Lee las instrucciones y escribe</text>
+      <text x="1186" y="484" font-size="14" fill="#475569">el texto del reporte</text>
+
+      <rect x="1170" y="550" width="360" height="70" rx="12" fill="#fff" stroke="#10b981" stroke-width="1.5"/>
+      <text x="1186" y="576" font-size="17" font-weight="700" fill="#0f172a">Respuesta</text>
+      <text x="1186" y="600" font-size="14" fill="#475569">Texto con formato JSON (las secciones)</text>
+
+      <path d="M230 86 V110" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M400 360 H470 V221 H550" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M800 250 V270" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M800 330 V350" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M1050 378 H1110 V335 H1170" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M1350 370 V410" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M1350 510 V550" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M1170 585 H1100 V458 H1050" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+      <path d="M550 458 H450 V400 H400" fill="none" stroke="#0f172a" stroke-width="2.5" marker-end="url(#arr)"/>
+
+      <rect x="30" y="690" width="1530" height="52" rx="12" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+      <text x="50" y="721" font-size="16" fill="#7f1d1d">Si la IA falla (por ejemplo, sin créditos): el detalle queda en el cuaderno del servidor y la persona solo ve un aviso genérico (error 502).</text>
+    </svg>
+    <p class="caption">Las flechas muestran el sentido del envío. Las etiquetas “Paso N” coinciden con las tarjetas de abajo.</p>
+  </section>
+
+  <h2>El recorrido, paso a paso</h2>
+  <div class="steps">
+
+    <article class="step" style="--c: #0f172a">
+      <span class="tag">Paso 1</span>
+      <h3>El operador escribe el turno</h3>
+      <p>La persona llena el formulario con los datos del turno y pulsa el botón. Todo ocurre en su navegador.</p>
+      <p class="tech"><strong>Tecnología:</strong> HTML, el lenguaje que dibuja los campos y botones.</p>
+      <p class="analogy">Como escribir un pedido en la hoja del menú.</p>
+    </article>
+
+    <article class="step" style="--c: var(--blue)">
+      <span class="tag">Paso 2</span>
+      <h3>app.js revisa y empaqueta</h3>
+      <p>El código de la página confirma que los equipos estén escritos como un objeto válido y arma un paquete con todos los datos.</p>
+      <p class="tech"><strong>Tecnología:</strong> JavaScript y JSON, un formato de texto con casillas (“nombre: valor”).</p>
+      <p class="analogy">Como el mesero que revisa el pedido antes de llevarlo a la cocina.</p>
+    </article>
+
+    <article class="step" style="--c: var(--violet)">
+      <span class="tag">Paso 3</span>
+      <h3>El paquete llega al servidor</h3>
+      <p>El paquete viaja por internet como una <strong>petición</strong> a la dirección <code>/api/generate-report</code>. El servidor la recibe y la envía a la ruta correcta.</p>
+      <p class="tech"><strong>Tecnología:</strong> HTTP (el protocolo de la web) y FastAPI, la herramienta que crea el servidor.</p>
+      <p class="analogy">Como entregar el pedido por la ventanilla de la cocina.</p>
+    </article>
+
+    <article class="step" style="--c: var(--violet)">
+      <span class="tag">Paso 4</span>
+      <h3>El revisor comprueba los datos</h3>
+      <p>Antes de gastar dinero en la IA, el servidor verifica que cada dato tenga el tipo y el tamaño correctos. Por ejemplo, el resumen no puede superar 2 000 caracteres. Si algo no cumple, responde <strong>422</strong> y se detiene.</p>
+      <p class="tech"><strong>Tecnología:</strong> Pydantic, una herramienta que valida datos.</p>
+      <p class="analogy">Como el jefe de cocina que confirma que el pedido esté completo antes de cocinar.</p>
+    </article>
+
+    <article class="step" style="--c: var(--violet)">
+      <span class="tag">Paso 5</span>
+      <h3>Se arma la instrucción para la IA</h3>
+      <p>El servidor une dos cosas: las reglas de un experto en normas SOLAS/IMO y los datos del turno. Los datos van marcados como <strong>información no confiable</strong>, para que la IA no obedezca órdenes escondidas dentro del texto.</p>
+      <p class="tech"><strong>Tecnología:</strong> Python. Esta instrucción se llama <strong>prompt</strong>.</p>
+      <p class="analogy">Como escribir una receta con los ingredientes del pedido.</p>
+    </article>
+
+    <article class="step" style="--c: var(--amber)">
+      <span class="tag">Paso 6</span>
+      <h3>Se envía a Anthropic con la llave secreta</h3>
+      <p>El servidor toma la <strong>llave</strong> (ANTHROPIC_API_KEY) del archivo <code>.env</code>, que no se publica en el repositorio. Con esa llave envía la receta a la ventanilla de Anthropic por un camino cifrado (HTTPS). Mientras espera, el servidor sigue atendiendo a otros usuarios.</p>
+      <p class="tech"><strong>Tecnología:</strong> API (una puerta para pedir servicios), HTTPS y <code>await</code> de Python, que permite esperar sin bloquear.</p>
+      <p class="analogy">Como llamar a la fábrica de comida con tu código de cliente, sin dejar de atender otras mesas.</p>
+    </article>
+
+    <article class="step" style="--c: var(--green)">
+      <span class="tag">Paso 7</span>
+      <h3>Claude redacta el reporte</h3>
+      <p>El modelo lee la receta y escribe el texto, palabra por palabra, en el formato pedido: resumen, equipos, incidentes, checklist y recomendaciones. Es un modelo entrenado con grandes cantidades de texto.</p>
+      <p class="tech"><strong>Tecnología:</strong> Claude, un modelo de lenguaje de Anthropic.</p>
+      <p class="analogy">Como el chef que cocina siguiendo la receta.</p>
+    </article>
+
+    <article class="step" style="--c: var(--violet)">
+      <span class="tag">Paso 8</span>
+      <h3>El servidor ordena la respuesta</h3>
+      <p>El texto regresa al servidor. Se convierte en datos ordenados por sección. Si el texto no tiene el formato esperado, el servidor no lo descarta: lo muestra completo en el resumen.</p>
+      <p class="tech"><strong>Tecnología:</strong> Python (<code>json</code>) y una función propia, <code>extract_json</code>.</p>
+      <p class="analogy">Como acomodar cada plato en su lugar antes de servirlo.</p>
+    </article>
+
+    <article class="step" style="--c: var(--blue)">
+      <span class="tag">Paso 9</span>
+      <h3>El reporte aparece en pantalla</h3>
+      <p>El servidor responde <strong>200</strong> (todo bien) con el reporte. app.js dibuja cada sección. Usa <code>textContent</code>, que muestra el texto tal cual y nunca lo ejecuta como código.</p>
+      <p class="tech"><strong>Tecnología:</strong> JavaScript y el DOM, la forma en que el navegador dibuja la página.</p>
+      <p class="analogy">Como el mesero que sirve el plato en la mesa correcta.</p>
+    </article>
+
+  </div>
+
+  <h2>Glosario de tecnologías</h2>
+  <table>
+    <thead>
+      <tr><th>Término</th><th>Qué es</th><th>Comparación</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>HTML</td><td>El lenguaje que define qué elementos tiene la página: campos, botones, títulos.</td><td>El plano de una casa.</td></tr>
+      <tr><td>CSS</td><td>El lenguaje que define cómo se ven esos elementos: colores, tamaños, tipografía.</td><td>La pintura y la decoración.</td></tr>
+      <tr><td>JavaScript</td><td>El lenguaje que hace que la página reaccione: valida, envía y muestra datos.</td><td>El interruptor y el timbre de la casa.</td></tr>
+      <tr><td>Servidor</td><td>Una computadora encendida todo el tiempo, que responde las peticiones de la aplicación.</td><td>La recepción de un hotel.</td></tr>
+      <tr><td>FastAPI</td><td>La herramienta, escrita en Python, que crea el servidor y sus rutas.</td><td>El sistema que organiza la recepción.</td></tr>
+      <tr><td>Pydantic</td><td>Herramienta que comprueba que los datos tengan el tipo y tamaño correctos.</td><td>El control de calidad de la fábrica.</td></tr>
+      <tr><td>JSON</td><td>Formato de texto para intercambiar datos, con pares “nombre: valor”.</td><td>Una ficha con casillas llenas.</td></tr>
+      <tr><td>API</td><td>Una interfaz que permite pedir un servicio a otro programa siguiendo reglas fijas.</td><td>La ventanilla de atención.</td></tr>
+      <tr><td>HTTPS</td><td>La forma segura de enviar datos por internet. Los datos viajan cifrados.</td><td>Un sobre sellado.</td></tr>
+      <tr><td>Prompt</td><td>El texto de instrucciones y datos que recibe la IA.</td><td>La receta.</td></tr>
+      <tr><td>Modelo Claude</td><td>La inteligencia artificial que lee el prompt y genera el texto del reporte.</td><td>El chef.</td></tr>
+      <tr><td>Token</td><td>Un fragmento de texto (una palabra o parte de ella). Se cobra por tokens leídos y escritos.</td><td>Los gramos de ingrediente usados.</td></tr>
+      <tr><td>.env</td><td>Archivo de texto con configuraciones secretas, como la llave. No se comparte.</td><td>La caja fuerte.</td></tr>
+      <tr><td>Log</td><td>Registro de lo que pasa en el servidor, usado para encontrar errores.</td><td>El cuaderno del gerente.</td></tr>
+      <tr><td>Códigos de respuesta</td><td>Números que indican el resultado: 200 todo bien, 400 pedido mal, 422 datos no válidos, 502 la IA no respondió.</td><td>Los semáforos de la operación.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Qué hace la IA y qué no hace</h2>
+  <div class="two">
+    <div class="box">
+      <h3>Sí hace</h3>
+      <ul>
+        <li><strong>Redacta un borrador</strong> del reporte a partir de los datos del turno.</li>
+        <li><strong>Organiza</strong> el contenido en secciones con el mismo formato.</li>
+        <li><strong>Sugiere</strong> un checklist de cumplimiento y recomendaciones.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>No hace</h3>
+      <ul>
+        <li><strong>No firma</strong> ni certifica el reporte. La firma es de una persona responsable.</li>
+        <li><strong>No consulta</strong> normas oficiales en este momento: solo usa lo que ya sabe y lo que recibe en el prompt.</li>
+        <li><strong>No guarda</strong> reportes ni datos del turno en una base de datos.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="warn">
+    <strong>Importante:</strong> el reporte es un borrador. Antes de usarlo en una auditoría o una inspección, una persona debe revisarlo y verificarlo contra las normas vigentes.
+  </div>
+
+</div>
+</body>
+</html>

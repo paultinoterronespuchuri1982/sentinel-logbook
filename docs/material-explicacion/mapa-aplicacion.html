@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de la aplicación</title>
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #475569;
+    --line: #cbd5e1;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --person: #0ea5e9;
+    --screen: #6366f1;
+    --server: #8b5cf6;
+    --cloud: #10b981;
+    --ai: #f59e0b;
+    --shield: #0f766e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45;
+  }
+  .poster { width: 1600px; margin: 0 auto; padding: 48px 56px 56px; }
+  h1 { font-size: 44px; margin: 0 0 8px; }
+  .sub { font-size: 22px; color: var(--muted); margin: 0 0 30px; }
+  .legend { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 26px; font-size: 16px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .dot { width: 16px; height: 16px; border-radius: 4px; display: inline-block; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px 28px; }
+  .step {
+    background: var(--card);
+    border: 2px solid var(--line);
+    border-radius: 18px;
+    padding: 22px 24px 20px;
+    border-top: 10px solid var(--c);
+  }
+  .step .top { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .num {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--c); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 700; flex-shrink: 0;
+  }
+  .step h2 { font-size: 26px; margin: 0; line-height: 1.2; }
+  .who { font-size: 15px; font-weight: 700; color: var(--c); text-transform: uppercase; letter-spacing: 0.5px; }
+  .step p { font-size: 18px; color: var(--muted); margin: 0 0 10px; }
+  .tech { background: #f1f5f9; border-radius: 10px; padding: 9px 12px; font-size: 16px; color: var(--ink); margin: 0 0 10px; }
+  .protect { border-left: 5px solid var(--shield); background: #f0fdfa; border-radius: 8px; padding: 9px 12px; font-size: 16px; color: #134e4a; margin: 0; }
+  .protect b { color: var(--shield); }
+  .bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; margin-top: 34px; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 22px 24px; }
+  .box h3 { font-size: 22px; margin: 0 0 12px; }
+  .box ul { margin: 0; padding-left: 22px; }
+  .box li { font-size: 17px; color: var(--muted); margin-bottom: 8px; }
+  .box li b { color: var(--ink); }
+  .box.no { border-top: 8px solid #dc2626; }
+  .box.yes { border-top: 8px solid #16a34a; }
+  .box.todo { border-top: 8px solid #f59e0b; }
+  .footer { margin-top: 28px; padding: 18px 22px; background: var(--ink); color: #f1f5f9; border-radius: 14px; font-size: 19px; }
+  .footer b { color: #fff; }
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <h1>Cómo funciona la aplicación, de principio a fin</h1>
+  <p class="sub">Un reporte de turno: desde que alguien escribe los datos hasta que aparece listo para revisar.</p>
+
+  <div class="legend">
+    <span><i class="dot" style="background: var(--person)"></i> Persona</span>
+    <span><i class="dot" style="background: var(--screen)"></i> Pantalla (navegador)</span>
+    <span><i class="dot" style="background: var(--server)"></i> Nuestro servidor</span>
+    <span><i class="dot" style="background: var(--cloud)"></i> Internet protegido</span>
+    <span><i class="dot" style="background: var(--ai)"></i> Inteligencia artificial</span>
+    <span><i class="dot" style="background: var(--shield)"></i> Protección</span>
+  </div>
+
+  <div class="grid">
+
+    <article class="step" style="--c: var(--person)">
+      <div class="top"><div class="num">1</div><div><div class="who">Persona</div><h2>Escribe el turno</h2></div></div>
+      <p>El operador llena el formulario: barco, fecha, horario, equipos, incidentes, mantenimiento y clima. Luego pulsa <b>Generate</b>.</p>
+      <div class="tech"><b>Tecnología:</b> HTML, que dibuja los campos y el botón.</div>
+      <p class="protect"><b>Protección:</b> los campos obligatorios no se pueden dejar vacíos.</p>
+    </article>
+
+    <article class="step" style="--c: var(--screen)">
+      <div class="top"><div class="num">2</div><div><div class="who">Pantalla</div><h2>Revisa y empaqueta</h2></div></div>
+      <p>El navegador comprueba que los equipos estén escritos correctamente y junta todos los datos en un solo paquete.</p>
+      <div class="tech"><b>Tecnología:</b> JavaScript y JSON (un formato con casillas “nombre: valor”).</div>
+      <p class="protect"><b>Protección:</b> es una primera revisión para el usuario. La revisión importante ocurre en el servidor.</p>
+    </article>
+
+    <article class="step" style="--c: var(--server)">
+      <div class="top"><div class="num">3</div><div><div class="who">Nuestro servidor</div><h2>Recibe y revisa</h2></div></div>
+      <p>El servidor recibe el paquete y comprueba cada dato: tipo correcto y tamaño permitido. Por ejemplo, el resumen no puede superar 2 000 caracteres. Si algo falla, responde con un aviso y no llama a la IA.</p>
+      <div class="tech"><b>Tecnología:</b> FastAPI (recibe las peticiones) y Pydantic (revisa los datos).</div>
+      <p class="protect"><b>Protección:</b> lo incorrecto se rechaza antes de gastar créditos.</p>
+    </article>
+
+    <article class="step" style="--c: var(--server)">
+      <div class="top"><div class="num">4</div><div><div class="who">Nuestro servidor</div><h2>Prepara la receta</h2></div></div>
+      <p>El servidor escribe las instrucciones para la IA: el papel de experto en normas SOLAS/IMO, las secciones que debe incluir y los datos del turno.</p>
+      <div class="tech"><b>Tecnología:</b> Python. Las instrucciones se llaman <b>prompt</b>.</div>
+      <p class="protect"><b>Protección:</b> los datos se marcan como “no confiables”, para que nadie esconda órdenes dentro del texto.</p>
+    </article>
+
+    <article class="step" style="--c: var(--cloud)">
+      <div class="top"><div class="num">5</div><div><div class="who">Internet protegido</div><h2>Viaja a la IA</h2></div></div>
+      <p>El servidor toma la llave secreta de un archivo protegido y envía la receta a Anthropic por una conexión cifrada.</p>
+      <div class="tech"><b>Tecnología:</b> HTTPS (conexión cifrada), API (la ventanilla de la IA) y el archivo <b>.env</b>.</div>
+      <p class="protect"><b>Protección:</b> la llave nunca llega al navegador, y el viaje va cifrado como un sobre sellado.</p>
+    </article>
+
+    <article class="step" style="--c: var(--ai)">
+      <div class="top"><div class="num">6</div><div><div class="who">Inteligencia artificial</div><h2>Redacta el reporte</h2></div></div>
+      <p>Claude lee la receta y escribe el texto palabra por palabra, en el formato pedido. Su respuesta tiene un límite de tamaño.</p>
+      <div class="tech"><b>Tecnología:</b> Claude, un modelo de lenguaje de Anthropic.</div>
+      <p class="protect"><b>Protección:</b> el límite de tamaño controla el costo. La IA puede equivocarse, por eso se revisa.</p>
+    </article>
+
+    <article class="step" style="--c: var(--server)">
+      <div class="top"><div class="num">7</div><div><div class="who">Nuestro servidor</div><h2>Ordena la respuesta</h2></div></div>
+      <p>El texto regresa al servidor. Se convierte en secciones ordenadas. Si no tiene el formato esperado, se muestra completo, sin perderlo.</p>
+      <div class="tech"><b>Tecnología:</b> Python (<b>json</b>) y la función <b>extract_json</b>.</div>
+      <p class="protect"><b>Protección:</b> si la IA falla, el usuario recibe solo un aviso genérico. El detalle queda en el registro del servidor.</p>
+    </article>
+
+    <article class="step" style="--c: var(--screen)">
+      <div class="top"><div class="num">8</div><div><div class="who">Pantalla</div><h2>Muestra el reporte</h2></div></div>
+      <p>El navegador dibuja cada sección: título, texto y lista. El operador puede leerla, copiarla o corregirla.</p>
+      <div class="tech"><b>Tecnología:</b> JavaScript y el DOM (la estructura que el navegador dibuja).</div>
+      <p class="protect"><b>Protección:</b> el texto se muestra como texto. Nunca se ejecuta como código.</p>
+    </article>
+
+    <article class="step" style="--c: var(--person)">
+      <div class="top"><div class="num">9</div><div><div class="who">Persona</div><h2>Revisa y firma</h2></div></div>
+      <p>Una persona responsable verifica el borrador, lo corrige si hace falta y lo firma. <b>La IA no firma.</b></p>
+      <div class="tech"><b>Tecnología:</b> ninguna. Es decisión humana.</div>
+      <p class="protect"><b>Protección:</b> la responsabilidad final siempre es de una persona.</p>
+    </article>
+
+  </div>
+
+  <div class="bottom">
+    <div class="box no">
+      <h3>Lo que la aplicación NO hace</h3>
+      <ul>
+        <li><b>No guarda reportes</b> ni datos del turno en el servidor.</li>
+        <li><b>No firma</b> ni certifica nada.</li>
+        <li><b>No consulta normas</b> en vivo: solo usa lo que recibe en la receta.</li>
+        <li><b>No recuerda</b> pedidos anteriores.</li>
+      </ul>
+    </div>
+    <div class="box yes">
+      <h3>Lo que ya protege</h3>
+      <ul>
+        <li>La llave secreta vive en un archivo protegido.</li>
+        <li>Los datos inválidos o demasiado grandes se rechazan.</li>
+        <li>Los errores técnicos no se muestran al público.</li>
+        <li>El texto de la IA nunca se ejecuta como código.</li>
+      </ul>
+    </div>
+    <div class="box todo">
+      <h3>Lo que falta antes de publicar</h3>
+      <ul>
+        <li><b>Acceso con usuario y contraseña</b>, o una red privada (VPN).</li>
+        <li><b>HTTPS</b> en el servidor publicado.</li>
+        <li><b>Límite de peticiones</b> para evitar saturación.</li>
+        <li><b>Rotar la llave</b>, porque se compartió en el chat.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    <b>En una frase:</b> una persona escribe los datos, nuestro servidor los revisa y los prepara, una IA en internet redacta un borrador por un camino cifrado, y una persona responsable lo revisa y lo firma.
+  </div>
+
+</div>
+</body>
+</html>
